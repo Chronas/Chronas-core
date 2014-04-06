@@ -1,0 +1,8 @@
+java class Hallo{
+java public static void main(String[]args){
+for kleiner=5 60
+Hallo Welt
+java System.out.println("Hallo Welt");
+}
+}
+}
