@@ -36,19 +36,19 @@ public class Compiler
 	private void compilieren()
 	{
 		//Variable, in der die Stärke der Einrückung der Befehle gespeichert ist
-		int einrückung = 0;
+		int limitation = 0;
 		
 		//Forschleife, die alle Zeilen des chr-Dokuments durchgeht und übersetzt
 		for (int i = 0; i < dokument.getLength(); i++)
 		{
 			//Zeile in einzelne Befehle aufteilen und Leerzeichen am Anfang und am Ende entfernen
-			String[] wörter = dokument.getText(i).trim().split("\\s+");
+			String[] words = dokument.getText(i).trim().split("\\s+");
 			
 			//Den Text des Javacodes von "null" auf "" setzen
 			javacode[i] = "";
 						
 			//Leerzeichen am Anfang der Zeilen um den generierten Code übersichtlicher zu gestalten
-			for (int j = 0; j < einrückung; j++) 
+			for (int j = 0; j < limitation; j++) 
 			{
 				javacode[i] += "   ";
 			}
@@ -57,45 +57,45 @@ public class Compiler
 			
 			
 			//Befehle prüfen und übersetzen
-			switch(wörter[0].toLowerCase())
+			switch(words[0].toLowerCase())
 			{
 				//Methoden und Klassen
-				case "class" : javacode[i] += "class " + wörter[1] + "{"; einrückung++;  break;
+				case "class" : javacode[i] += "class " + words[1] + "{"; limitation++;  break;
 				case "run"   : runMethode(i); break;		//Methode ausführen
-				case "method": javacode[i] += "void " + wörter[1] + "(){"; einrückung++; break;
+				case "method": methode(i); limitation++; break;
 			
 				
 				/*
 				 * Kontrollstrukturen
 				 */
-				case "for": forSchleife(wörter, i); einrückung++; break;
-				case "}":   javacode[i] += "}";     einrückung--; break;
+				case "for": forSchleife(words, i); limitation++; break;
+				case "}":   javacode[i] += "}";     limitation--; break;
 				
 				
 				/*
 				 * Variablentypen
 				 */
 				//Zahlen
-				case "int":    javacode[i] += "int " + wörter[1] + ";";  break;
-				case "long":   javacode[i] += "long " + wörter[1] + ";"; break;
+				case "int":    javacode[i] += "int " + words[1] + ";";  break;
+				case "long":   javacode[i] += "long " + words[1] + ";"; break;
 				//Gleitkommazahlen
-				case "float":    javacode[i] += "float " + wörter[1] + ";";  break;
-				case "double":   javacode[i] += "double " + wörter[1] + ";"; break;
+				case "float":    javacode[i] += "float " + words[1] + ";";  break;
+				case "double":   javacode[i] += "double " + words[1] + ";"; break;
 				
 				//Zeichen und Zeichenketten
-				case "string": javacode[i] += "String " + wörter[1] + ";";  break;
-				case "char":   javacode[i] += "char " + wörter[1] + ";";  break;
+				case "string": javacode[i] += "String " + words[1] + ";";  break;
+				case "char":   javacode[i] += "char " + words[1] + ";";  break;
 				
 				//Wahrheitswert
-				case "bool":   javacode[i] += "boolean " + wörter[1] + ";";  break;
+				case "bool":   javacode[i] += "boolean " + words[1] + ";";  break;
 				
 					
 				
 				/*
 				 * Javacode & Kommentar
 				 */
-				case "java": for (int j = 1; j < wörter.length; j++)   //Javacode
-								javacode[i] += wörter[j] + " ";
+				case "java": for (int j = 1; j < words.length; j++)   //Javacode
+								javacode[i] += words[j] + " ";
 						     break;
 				default:    javacode[i] += "//" + dokument.getText(i).trim(); //Kommentar	
 			}
@@ -112,28 +112,56 @@ public class Compiler
 	 * for variablenname=startwert to endwert "step schrittgröße"
 	 * übersetzt
 	 */
-	public void forSchleife(String[]wörter, int i) //i=Zeile
+	public void forSchleife(String[] words, int i) //i=Zeile
 	{		//Nur wenn die Sprachgrammatik stimmt, wird der Code ausgeführt
-		if(wörter[2].equals("to"))
+		if(words[2].equals("to"))
 		{
 		
-			String[] var1 = wörter[1].split("=");					   //Aufteilung der Variablendeklaration in 2 Wörter
-			javacode[i] += "for(int " + wörter[1] + "; " + var1[0];    //Variable deklarieren
+			String[] var1 = words[1].split("=");					   //Aufteilung der Variablendeklaration in 2 Wörter
+			javacode[i] += "for(int " + words[1] + "; " + var1[0];    //Variable deklarieren
 		
 			//Schrittzahl ist standartmäßig 1, kann allerdings geändert werden
 			int step = 1;
-			if(wörter.length >= 6 && wörter[5].equals("step"))
-				step = Integer.parseInt(wörter[5]);
+			if(words.length >= 6 && words[5].equals("step"))
+				step = Integer.parseInt(words[5]);
 			
-			if(Integer.parseInt(var1[1]) > Integer.parseInt(wörter[3]))//größer oder kleiner Zeichen
+			if(Integer.parseInt(var1[1]) > Integer.parseInt(words[3]))//größer oder kleiner Zeichen
 			{
-				javacode[i] += ">" + wörter[3] + "; " + var1[0] + "-=" + step + "){";
+				javacode[i] += ">" + words[3] + "; " + var1[0] + "-=" + step + "){";
 			}
 			else
 			{
-				javacode[i] += "<" + wörter[3] + "; " + var1[0] + "+=" + step + "){";
+				javacode[i] += "<" + words[3] + "; " + var1[0] + "+=" + step + "){";
 			}
 		}
+	}
+	
+	
+	
+	
+	/*
+	 * Mehtode erstellen:
+	 * method rückgabetyp name <modifizierer>: parameter
+	 */
+	public void methode(int i) //i=Zeile
+	{		
+		//Modifizierer wie public, private, final, static
+		String[] words = dokument.getText(i).trim().split("<");
+		         words = words[1].trim().split(">");
+		String   modifizierer = words[0].trim().replace(",", " ");
+		javacode[i] += modifizierer + " ";
+		
+		//Rückgabetyp
+		words = dokument.getText(i).trim().split("\\s+");
+		javacode[i] += words[1] + " ";
+		
+		//Name 
+		words = words[2].trim().split("<");
+		javacode[i] += words[0] + "(";
+        
+        //Argumente
+	    words = dokument.getText(i).trim().split(":");
+        javacode[i] += words[1] + "){";
 	}
 	
 	
@@ -146,19 +174,17 @@ public class Compiler
 	public void runMethode(int i) //i=Zeile
 	{		
 		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
-		String[] wörter = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
+		String[] words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
 		
 		/*
 		 * Den Code übersetzen
 		 */
-		javacode[i] += wörter[0] + "(";
+		javacode[i] += words[0] + "(";
 		//Die Variable wörter neu bestimmen
-		wörter = dokument.getText(i).trim().split(":");
+		words = dokument.getText(i).trim().split(":");
 		
 		//Argumente dem Javacode hinzufügen
-		javacode[i] += wörter[1].trim() + ");";
-		
-		
+		javacode[i] += words[1].trim() + ");";
 	}
 	
 	
@@ -176,14 +202,17 @@ public class Compiler
 		
 	    
 	    //in dem Javadokument den Code speichern
-	    try{ 
+	    try
+	    { 
             PrintWriter pWriter = new PrintWriter(new FileWriter(datei)); 
             for (int i = 0; i < javacode.length; i++) 
             {
 				pWriter.println(javacode[i]);
 	            pWriter.flush(); 
 			}
-        }catch(IOException ioe){ 
+        }
+	    catch(IOException ioe)
+	    { 
             ioe.printStackTrace(); 
         } 
 	}
