@@ -1,8 +1,19 @@
-java class Hallo{
-java public static void main(String[]args){
-for kleiner=5 60
-Hallo Welt
-java System.out.println("Hallo Welt");
-}
-}
+import java.io.*
+import java.io.*
+
+class Hallo
+	method void main<public, static>: String[] args
+		import java.io.*
+		for kleiner=6 to 3 step 2 
+			var boolean test = true
+			var String hallo = "Hallo " + test 
+			
+			Dies ist ein kleiner
+			Kommentar zum testen
+
+			if test
+				run System.out.println: hallo
+			}
+		}
+	}
 }
