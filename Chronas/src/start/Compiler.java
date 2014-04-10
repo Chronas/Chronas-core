@@ -67,7 +67,7 @@ public class Compiler
 				 */
 				case "for": forSchleife(words, i); limitation++; break;
 				case "if":  ifBedingung(i); limitation++; break;
-				case "}":   javacode[i] += "}"; limitation--; break;
+				case "}":   beendeContainer(i, limitation); limitation--; break;
 				
 				
 				/*
@@ -84,7 +84,8 @@ public class Compiler
 				case "java": for (int j = 1; j < words.length; j++)   //Javacode
 								javacode[i] += words[j] + " ";
 						     break;
-				default: javacode[i] += "//" + dokument.getText(i).trim(); //Kommentar	
+				default: if(!dokument.getText(i).trim().equals("") && dokument.getText(i).trim() != null)
+							javacode[i] += "//" + dokument.getText(i).trim(); //Kommentar	
 			}
 			
 		}
@@ -211,6 +212,24 @@ public class Compiler
 		javacode[i] += words[1].trim() + ");";
 	}
 	
+	
+	
+	
+	/*
+	 *Kontainer beenden und die Einrückung(limitation)
+	 *korrigieren, da sonst alle geschweiften Schlussklammern 
+	 *zu weit hinten stehen
+	 */
+	public void beendeContainer(int i, int limitation) //i=Zeile
+	{		
+		javacode[i] = "";
+		
+		for (int j = 0; j < limitation-1; j++) 
+		{
+			javacode[i] += "   ";
+		}
+		javacode[i] += "}"; 
+	}
 	
 	
 	
