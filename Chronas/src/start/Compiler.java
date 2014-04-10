@@ -11,6 +11,15 @@ public class Compiler
 	//Übersetzter Code
 	String[] javacode;
 	
+	//Gibt an, ob die Klasse noch nicht angefangen hat und import Anweisungen erlaubt sind
+	boolean startDerKlasse = true;
+	
+	
+	
+	
+	/*
+	 * Konstruktor
+	 */
 	public Compiler(ChrDokument dokument, File pfad)
 	{
 		this.dokument = dokument;
@@ -57,9 +66,10 @@ public class Compiler
 			switch(words[0].toLowerCase())
 			{
 				//Methoden und Klassen
-				case "class" : javacode[i] += "class " + words[1] + "{"; limitation++;  break;
+				case "class" : javacode[i] += "class " + words[1] + "{"; startDerKlasse = false; limitation++;  break;
 				case "run"   : runMethode(i); break;		//Methode ausführen
 				case "method": methode(i); limitation++; break;
+				case "import": importClasses(i); break; 
 			
 				
 				/*
@@ -92,7 +102,21 @@ public class Compiler
 	}
 
 
+	/*
+	 * Import Anweisung 
+	 * import importanweisung
+	 */
+	private void importClasses(int i) 
+	{
+		String words = dokument.getText(i).replace("import", "").trim();
 
+		//Javacode wird nur als Import gewertet, wenn die Klasse noch nicht begonnen hat
+		//Ansonsten wird es als Kommentar genommen.
+		if(startDerKlasse)
+			javacode[i] += "import " + words + ";";
+		else
+			javacode[i] += "//" + dokument.getText(i).trim();
+	}
 
 	/*
 	 * Variable erstellen:
@@ -102,6 +126,7 @@ public class Compiler
 	{
 		String[] words = dokument.getText(i).trim().split("\\s+");
 		
+		//Wenn die Variable eine Zuweisung besitzt, wird das erste ausgeführt, ansonsten das zweite
 		if(dokument.getText(i).contains("="))
 		{
 			String[] bedingung = dokument.getText(i).trim().split("=");
