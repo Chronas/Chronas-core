@@ -1,0 +1,73 @@
+Chronas:
+Der Name der Programmiersprache Chronas, welche stark an Java angelehnt ist und beim Compilieren auch in diese Sprache übersetzt wird,
+leitet sich von dem Names des altgriechischen Gottes "Chronos" ab, der für die Zeit zuständig war.
+Da Chronas im compilierten Zustand eigentlich nur Java-Code ist, läuft der Code auch auf jedem Computer, 
+auf dem die JRE(Java Runtime Environment) installiert wurde.
+Der Chronascode wird in einem .chr Dokument gespeichert.
+Die Entwicklung dieser Sprache begann am 30.03.2014.
+
+
+Generelle Struktur:
+-Jeder Befehl beginnt mit einem Schlüsselwort, welches den Befehl einleitet.
+ Bsp: var boolean test = true(var ist das Schlüsselwort)
+-Am Ende eines Befehls muss kein Semikolon oder ein anderes Schlusszeichen stehen, was die Sprache auch so einsteiger-
+ freundlich macht, da sich da sehr viele Einsteiger in anderen Sprachen wie Java schwer tun.
+-Es darf nur ein Befehl pro Zeile stehen, was den Quellcode übersichtlicher macht.
+
+
+Klassen:
+Schlüsselwort: class
+Die Klassendefinition ist ähnlich wie in Java, nur dass die Modifizierer in spitze Klammern kommen.
+Bsp: class Hallo <public>
+
+
+Methoden:
+Schlüsselwort: method
+Methodendefinitionen sind ähnlich wie die Klassen, wobei hinter dem Doppelpunkt die Parameter kommen.
+Nach dem Schlüsselwort kommt der Rückgabetyp, worauf der Name  folgt.
+Bsp: method void main<public, static, final>: String[] args
+
+Ein Aufruf einer Methode erfolgt ähnlich wie die Definiton, nur dass das Schlüsselwort "run" darstellt.
+Nach dem Schlüsselwort kommt der Methodenname und hinter dem Doppelpunkt folgen die Argumente.
+Bsp: run System.out.println: hallo
+
+
+For-Schleife:
+Schlüsselwort: for
+Die For-Schleife funktioniert ähnlich wie in Java, wobei die Schleife vom ersten Wert zum zweiten geht.
+Bsp: for index=6 to 3 step 2 
+
+
+If-Bedingung:
+Schlüsselwort: if
+Direkt nach dem Schlüsselwort kommt die Bedingung.
+Bsp: if test
+
+Kontainerende:
+Schlüsselwort: }
+Wird benutzt, um das Ende jeder Kontrollstruktur wie Bedingungen und Schleifen, aber auch das Ende von Methoden und Klassen
+anzuzeigen.
+Bsp: if test
+	run System.out.println: hallo
+     }
+
+
+Variablen:
+Schlüsselwort: var
+Eine Variable wird genauso wie in Java erstellt, mit der Abweichung, dass es das Schlüsselwort benutzt werden muss.
+Es gibt auch die gleichen Variablentypen, wie in Java.
+Bsp:	var boolean test = true
+	var int test2
+	var String hallo = "Hallo " + test 
+
+
+Kommentare:
+Jeder Text ohne ein Schlüsselwort wird als Kommentar gewertet, aber auch wenn ein Schlüsselwort an den
+falschen Stellen angewendet wird, gilt es als Kommentar(z.B. import innerhalb einer Klasse).
+
+
+Javacode:
+Schlüsselwort: java
+Alles was hinter dem Schlüsselwort steht wird als Javacode gewertet und so in den übersetzten Javacode übersetzt.
+Dies ist auch die einzige Möglichkeit in Chronas, mehrere Befehle pro Zeile zu schreiben.
+Bsp: java int a = 2;
