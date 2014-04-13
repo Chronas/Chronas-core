@@ -66,7 +66,7 @@ public class Compiler
 			switch(words[0].toLowerCase())
 			{
 				//Methoden und Klassen
-				case "class" : javacode[i] += "class " + words[1] + "{"; startDerKlasse = false; limitation++;  break;
+				case "class" : klasse(i); startDerKlasse = false; limitation++;  break;
 				case "run"   : runMethode(i); break;		//Methode ausführen
 				case "method": methode(i); limitation++; break;
 				case "import": importClasses(i); break; 
@@ -100,13 +100,137 @@ public class Compiler
 			
 		}
 	}
+	
+	
+	
+	
+	
+	/*
+	 * Mehtode erstellen:
+	 * method rückgabetyp name <modifizierer>: parameter
+	 */
+	public void klasse(int i) //i=Zeile
+	{		
+		/*
+		 * Übrprüfung, ob der Befehl die richtige Grammatik hat
+		 */
+		String[] words = dokument.getText(i).trim().split("<");
+		int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
+		if(length != 2) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
+			return;
+		}
+		
+		//Grammatik innerhalb des Diamantoperators
+		if(words.length == 2)
+		{
+			words = words[1].split(">"); 
+			if(words.length != 1) 
+			{
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!";
+				return;
+			}
+		}
+		
+		//Modifizierer wie public, private, final, static
+		words = dokument.getText(i).trim().split("<");
+		if(words.length == 2)
+		{
+			words = words[1].trim().split(">");
+			String   modifizierer = words[0].trim().replace(",", " ");
+			javacode[i] += modifizierer + " ";
+		}
+		
+		//Klassenname 
+		words = dokument.getText(i).trim().split("\\s+");
+		words = words[1].trim().split("<");
+		javacode[i] += "class " + words[0] + "{";
+	}
+	
 
-
+	
+	
+	/*
+	 * Mehtode erstellen:
+	 * method rückgabetyp name <modifizierer>: parameter
+	 */
+	public void methode(int i) //i=Zeile
+	{		
+		String[] words;
+		
+		/*
+		 * Übrprüfung, ob der Befehl die richtige Grammatik hat
+		 */
+		//Die ersten Wörter vor den Argumenten & Modifizierern herausfiltern
+		if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
+			words = dokument.getText(i).trim().split("<");
+		else if(dokument.getText(i).contains(":"))
+			words = dokument.getText(i).trim().split(":");
+		else
+			words = dokument.getText(i).trim().split("\\s+");
+			
+		//Anzahl der Wörter vor den Modifizierern & Argumenten überprüfen
+		int length = words[0].split("\\s+").length;	
+		if(length != 3) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
+			return;
+		}
+		
+		//Modifizierer wie public, private, final, static
+		words = dokument.getText(i).trim().split("<");
+		if(words.length == 2)
+		{
+			words = words[1].trim().split(">");
+			String   modifizierer = words[0].trim().replace(",", " ");
+			javacode[i] += modifizierer + " ";
+		}
+		
+		//Rückgabetyp
+		words = dokument.getText(i).trim().split("\\s+");
+		javacode[i] += words[1] + " ";
+		
+		//Name 
+		words = words[2].trim().split("<");
+		javacode[i] += words[0].replace(":", "") + "(";
+        
+        //Argumente
+	    words = dokument.getText(i).trim().split(":");
+        javacode[i] += words[1] + "){";
+	}
+	
+	
+	
+	
+	/*
+	 * Methode ausführen
+	 * Die Argumente sind hinter dem Doppelpunkt und werden durch Kommas getrennt
+	 */
+	public void runMethode(int i) //i=Zeile
+	{		
+		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
+		String[] words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
+		
+		/*
+		 * Den Code übersetzen
+		 */
+		javacode[i] += words[0] + "(";
+		//Die Variable wörter neu bestimmen
+		words = dokument.getText(i).trim().split(":");
+		
+		//Argumente dem Javacode hinzufügen
+		javacode[i] += words[1].trim() + ");";
+	}
+	
+	
+	
+	
 	/*
 	 * Import Anweisung 
 	 * import importanweisung
 	 */
-	private void importClasses(int i) 
+	public void importClasses(int i) 
 	{
 		String words = dokument.getText(i).replace("import", "").trim();
 
@@ -118,26 +242,45 @@ public class Compiler
 			javacode[i] += "//" + dokument.getText(i).trim();
 	}
 
+	
+	
+	
 	/*
 	 * Variable erstellen:
 	 * var variablentyp name
 	 */
-	private void variable(int i) 
+	public void variable(int i) 
 	{
 		String[] words = dokument.getText(i).trim().split("\\s+");
+
 		
-		//Wenn die Variable eine Zuweisung besitzt, wird das erste ausgeführt, ansonsten das zweite
+		//Modifizierer wie public, private, final, static
+		words = dokument.getText(i).trim().split("<");
+		if(words.length == 2)
+		{
+			words = words[1].trim().split(">");
+			String   modifizierer = words[0].trim().replace(",", " ");
+			javacode[i] += modifizierer + " ";
+		}
+		
+		//Variable erstellen
+		if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
+			words = dokument.getText(i).trim().split("<");
+		else 
+			words = dokument.getText(i).trim().split("=");
+		words = words[0].trim().split("\\s+");
+		javacode[i] += words[1] + " " + words[2];
+		
+		//Wird nur ausgeführt, wenn die Variable eine Zuwesiung besitzt
 		if(dokument.getText(i).contains("="))
 		{
 			String[] bedingung = dokument.getText(i).trim().split("=");
 			
 			words = bedingung[0].split("\\s+");
-			javacode[i] += words[1] + " " + words[2] + " = " + bedingung[1] + ";";
+			javacode[i] += " = " + bedingung[1];
 		}
-		else
-		{			
-			javacode[i] += words[1] + " " + words[2] + ";";
-		}
+	
+		javacode[i] += ";";
 	}
 
 
@@ -178,63 +321,13 @@ public class Compiler
 	 * If Bedingung erstellen:
 	 * if bedingung 
 	 */
-	private void ifBedingung(int i) 
+	public void ifBedingung(int i) 
 	{
 		//Die Bedingung aus der Eingabe rausfiltern
 		String bedingung = dokument.getText(i).replace("if", "").trim();
 		
 		//Die Bedingung dem Javacode hinzufügen
 		javacode[i] += "if(" + bedingung + "){";
-	}
-	
-	
-	
-	/*
-	 * Mehtode erstellen:
-	 * method rückgabetyp name <modifizierer>: parameter
-	 */
-	public void methode(int i) //i=Zeile
-	{		
-		//Modifizierer wie public, private, final, static
-		String[] words = dokument.getText(i).trim().split("<");
-		         words = words[1].trim().split(">");
-		String   modifizierer = words[0].trim().replace(",", " ");
-		javacode[i] += modifizierer + " ";
-		
-		//Rückgabetyp
-		words = dokument.getText(i).trim().split("\\s+");
-		javacode[i] += words[1] + " ";
-		
-		//Name 
-		words = words[2].trim().split("<");
-		javacode[i] += words[0] + "(";
-        
-        //Argumente
-	    words = dokument.getText(i).trim().split(":");
-        javacode[i] += words[1] + "){";
-	}
-	
-	
-	
-	
-	/*
-	 * Methode ausführen
-	 * Die Argumente sind hinter dem Doppelpunkt und werden durch Kommas getrennt
-	 */
-	public void runMethode(int i) //i=Zeile
-	{		
-		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
-		String[] words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
-		
-		/*
-		 * Den Code übersetzen
-		 */
-		javacode[i] += words[0] + "(";
-		//Die Variable wörter neu bestimmen
-		words = dokument.getText(i).trim().split(":");
-		
-		//Argumente dem Javacode hinzufügen
-		javacode[i] += words[1].trim() + ");";
 	}
 	
 	
@@ -278,6 +371,7 @@ public class Compiler
 				pWriter.println(javacode[i]);
 	            pWriter.flush(); 
 			}
+            pWriter.close();
         }
 	    catch(IOException ioe)
 	    { 
