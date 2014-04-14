@@ -1,9 +1,15 @@
 package start;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -49,11 +55,11 @@ public class Anzeige
 			public void actionPerformed(ActionEvent arg0) 
  			{
 				JFileChooser chooser = new JFileChooser("c:/");
-				FileFilter filter = new FileNameExtensionFilter("Chronasdatei", "chr"); //Filter für Dateiendungen
+				FileFilter filter = new FileNameExtensionFilter("Chronasdatei", "chr"); //Filter fÃ¼r Dateiendungen
 		        chooser.setFileFilter(filter);
 		        chooser.setAcceptAllFileFilterUsed(false);
-		        chooser.showOpenDialog(null);		    							  //Pfad auswählen mit JFileChooser
-				 f = chooser.getSelectedFile();									  //Pfad im Textfeld anzeigen
+		        chooser.showOpenDialog(null);		    							  //Pfad auswÃ¤hlen mit JFileChooser
+				f = chooser.getSelectedFile();									  //Pfad im Textfeld anzeigen
 				pfad.setText(f.getAbsolutePath());									  
 			}
  		});
@@ -70,12 +76,39 @@ public class Anzeige
  			{
 				if(!f.equals(""))
 				{
-					//Compiler erstellen und ihm das ChrDokument übergeben
+					//Compiler erstellen und ihm das ChrDokument Ã¼bergeben
 					ChrDokument dokument = new ChrDokument(f);
 					Compiler compiler = new Compiler(dokument, f);
 				}
 			}
  		});
+ 		
+ 		
+ 		/*
+ 		 * Dateien per Drag & Drop einfÃ¼gen
+ 		 */
+		//Neues DropTarget erstellen
+		DropTarget target = new DropTarget(frame.getContentPane(), new DropTargetAdapter() {
+			
+			//DropEvent Abfangen
+			@SuppressWarnings("unchecked")
+			public void drop(DropTargetDropEvent dtde) {
+				if(dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+				{
+					dtde.acceptDrop(dtde.getDropAction());
+					try {
+						//gedroppte Elemente werden in List geschrieben
+						List<File> list = (List<File>) dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+						//CanonicalPath von erstem Element wird in Textfeld geschrieben.
+						pfad.setText(list.get(0).getCanonicalPath());
+					} catch (UnsupportedFlavorException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
  		
  		frame.setVisible(true);
 	}
