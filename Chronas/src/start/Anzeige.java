@@ -74,7 +74,7 @@ public class Anzeige
  			@Override
 			public void actionPerformed(ActionEvent arg0) 
  			{
-				if(!f.equals(""))
+				if(!pfad.getText().equals(""))
 				{
 					//Compiler erstellen und ihm das ChrDokument übergeben
 					ChrDokument dokument = new ChrDokument(f);
