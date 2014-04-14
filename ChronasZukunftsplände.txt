@@ -1,3 +1,4 @@
 while Schleifen
 switch
 Objektorientierung
+Mehr Fehlermeldungen
