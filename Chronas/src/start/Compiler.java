@@ -39,15 +39,15 @@ public class Compiler
 	/*
 	 * Übersetzen des Codes in Javacode
 	 */
-	private void compilieren()
+	public void compilieren()
 	{
 		//Variable, in der die Stärke der Einrückung der Befehle gespeichert ist
 		int limitation = 0;
 		
 		//Forschleife, die alle Zeilen des chr-Dokuments durchgeht und übersetzt
 		for (int i = 0; i < dokument.getLength(); i++)
-		{
-			//Zeile in einzelne Befehle aufteilen und Leerzeichen am Anfang und am Ende entfernen
+		{	
+			//Den Befehl in seine einzelnen Bestandteile aufsplitten
 			String[] words = dokument.getText(i).trim().split("\\s+");
 			
 			//Den Text des Javacodes von "null" auf "" setzen
@@ -75,7 +75,7 @@ public class Compiler
 				/*
 				 * Kontrollstrukturen
 				 */
-				case "for": forSchleife(words, i); limitation++; break;
+				case "for": forSchleife(i); limitation++; break;
 				case "if":  ifBedingung(i); limitation++; break;
 				case "}":   beendeContainer(i, limitation); limitation--; break;
 				
@@ -112,13 +112,18 @@ public class Compiler
 	public void klasse(int i) //i=Zeile
 	{		
 		/*
-		 * Übrprüfung, ob der Befehl die richtige Grammatik hat
+		 * Grammatiküberprüfung und Fehlerausgabe
 		 */
 		String[] words = dokument.getText(i).trim().split("<");
 		int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
-		if(length != 2) 
+		if(length > 2) 
 		{
 			javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
+			return;
+		}
+		else if(length == 1) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!";
 			return;
 		}
 		
@@ -160,7 +165,7 @@ public class Compiler
 		String[] words;
 		
 		/*
-		 * Übrprüfung, ob der Befehl die richtige Grammatik hat
+		 * Grammatiküberprüfung und Fehlerausgabe
 		 */
 		//Die ersten Wörter vor den Argumenten & Modifizierern herausfiltern
 		if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
@@ -209,8 +214,24 @@ public class Compiler
 	 */
 	public void runMethode(int i) //i=Zeile
 	{		
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		String[] words = dokument.getText(i).trim().split(":");
+		int length = words[0].split("\\s+").length;	
+		if(length != 2) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Methodennamen stehen unbekannte Zeichen!";
+			return;
+		}
+		else if(length == 1) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Methodenname fehlt!";
+			return;
+		}
+		
 		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
-		String[] words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
+		words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
 		
 		/*
 		 * Den Code übersetzen
@@ -232,12 +253,27 @@ public class Compiler
 	 */
 	public void importClasses(int i) 
 	{
-		String words = dokument.getText(i).replace("import", "").trim();
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		String[] words = dokument.getText(i).trim().split("\\s+");
+		if(words.length > 2) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Pfad stehen unbekannte Zeichen!";
+			return;
+		}
+		else if(words.length == 1)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Die Pfadangabe fehlt";
+			return;
+		}
+		
+		String pfad = dokument.getText(i).replace("import", "").trim();
 
 		//Javacode wird nur als Import gewertet, wenn die Klasse noch nicht begonnen hat
 		//Ansonsten wird es als Kommentar genommen.
 		if(startDerKlasse)
-			javacode[i] += "import " + words + ";";
+			javacode[i] += "import " + pfad + ";";
 		else
 			javacode[i] += "//" + dokument.getText(i).trim();
 	}
@@ -251,8 +287,34 @@ public class Compiler
 	 */
 	public void variable(int i) 
 	{
-		String[] words = dokument.getText(i).trim().split("\\s+");
-
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		String[] words;
+		
+		if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
+		{
+			words = dokument.getText(i).trim().split("<");
+			words = words[0].trim().split("\\s+");
+		}
+		else if(dokument.getText(i).contains("="))
+		{
+			words = dokument.getText(i).trim().split("=");
+			words = words[0].trim().split("\\s+");
+		}
+		else
+			words = dokument.getText(i).trim().split("\\s+");
+		
+		if(words.length > 3) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Namen kommen unbekannte Zeichen!";
+			return;
+		}
+		else if(words.length < 3)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Name, der Rückgbetyp oder beides fehlt!";
+			return;
+		}
 		
 		//Modifizierer wie public, private, final, static
 		words = dokument.getText(i).trim().split("<");
@@ -290,29 +352,52 @@ public class Compiler
 	 * for variablenname=startwert to endwert "step schrittgröße"
 	 * übersetzt
 	 */
-	public void forSchleife(String[] words, int i) //i=Zeile
-	{		//Nur wenn die Sprachgrammatik stimmt, wird der Code ausgeführt
-		if(words[2].equals("to"))
+	public void forSchleife(int i) //i=Zeile
+	{	
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		String[] words = dokument.getText(i).trim().replace("=", " ").split("\\s+");
+		
+		if(words.length > 5) 
 		{
-		
-			String[] var1 = words[1].split("=");					   //Aufteilung der Variablendeklaration in 2 Wörter
-			javacode[i] += "for(int " + words[1] + "; " + var1[0];    //Variable deklarieren
-		
-			//Schrittzahl ist standartmäßig 1, kann allerdings geändert werden
-			int step = 1;
-			if(words.length >= 6 && words[5].equals("step"))
-				step = Integer.parseInt(words[5]);
-			
-			if(Integer.parseInt(var1[1]) > Integer.parseInt(words[3]))//größer oder kleiner Zeichen
+			if(words.length != 7 || !words[5].equals("step"))
 			{
-				javacode[i] += ">" + words[3] + "; " + var1[0] + "-=" + step + "){";
-			}
-			else
-			{
-				javacode[i] += "<" + words[3] + "; " + var1[0] + "+=" + step + "){";
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Am Ende des Befehls stehen unbekannte Zeichen!";
+				return;
 			}
 		}
+		else if(words.length < 5)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Befehl ist unvollständig!";
+			return;
+		}
+		else if(words[3].equals("to"))
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Teilbefehl 'to' fehlt!";
+			return;
+		}
+		
+		 //Variable deklarieren
+		javacode[i] += "for(int " + words[1] + "=" + words[2] + "; ";   
+	
+		//Schrittzahl ist standartmäßig 1, kann allerdings geändert werden
+		int step = 1;
+		if(words.length == 7 && dokument.getText(i).contains("step"))
+			step = Integer.parseInt(words[6]);
+		
+		//Ist die erste Zahl größer als die Zweite, wird das erste ausgeführt, 
+		//ansonsten das Zweite
+		if(Integer.parseInt(words[2]) > Integer.parseInt(words[4]))
+		{
+			javacode[i] += words[1] + ">" + words[4] + "; " + words[1] + "-=" + step + "){";
+		}
+		else
+		{
+			javacode[i] += words[1] + "<" + words[4] + "; " + words[1] + "+=" + step + "){";
+		}
 	}
+	
 	
 	
 	
@@ -347,6 +432,12 @@ public class Compiler
 			javacode[i] += "   ";
 		}
 		javacode[i] += "}"; 
+		
+		//Falls vorhanden, Kommentar hinter die Klammer setzen
+		String words = dokument.getText(i).replace("}", "").trim();
+		
+		if(!words.equals(""))
+			javacode[i] += " //" + words;
 	}
 	
 	
