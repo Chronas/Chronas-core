@@ -1,6 +1,6 @@
 Chronas-core
 ============
 
-Easy Java dialect
+JVM Alien
 
 You find the description at our Wiki.
