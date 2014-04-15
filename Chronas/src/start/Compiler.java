@@ -62,7 +62,9 @@ public class Compiler
 			
 			
 			
-			//Befehle prüfen und übersetzen
+			/*
+			 * Befehle prüfen und übersetzen
+			 */
 			switch(words[0].toLowerCase())
 			{
 				//Methoden und Klassen
@@ -81,10 +83,10 @@ public class Compiler
 				
 				
 				/*
-				 * Variablentypen
+				 * Variablen und Objekte
 				 */
-				//Zahlen
 				case "var": variable(i); break;
+				case "new": newObjekt(i, dokument.getText(i)); break;
 				
 					
 				
@@ -131,7 +133,7 @@ public class Compiler
 		if(words.length == 2)
 		{
 			words = words[1].split(">"); 
-			if(words.length != 1) 
+			if(words.length != 1  && !dokument.getText(i).contains("extends")) 
 			{
 				javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!";
 				return;
@@ -150,7 +152,84 @@ public class Compiler
 		//Klassenname 
 		words = dokument.getText(i).trim().split("\\s+");
 		words = words[1].trim().split("<");
-		javacode[i] += "class " + words[0] + "{";
+		javacode[i] += "class " + words[0];
+		
+		//Vererbung
+		if(dokument.getText(i).contains("extends"))
+		{
+			//Klassen rausfiltern
+			words = dokument.getText(i).trim().split("extends");
+			words = words[1].trim().split(",");
+			
+			//Vererbung
+			if(!words[0].trim().equals(""))
+			{
+				javacode[i] += " extends " + words[0].trim();
+			}
+			
+			//Interfaces
+			if(words.length > 1)
+			{
+				javacode[i] += " implements ";
+				if(words.length > 2)
+				{
+					for (int j = 1; j < words.length-1; j++) 
+					{
+						javacode[i] += words[j].trim() + ", ";
+					}
+				}
+				javacode[i] += words[words.length-1].trim();
+			}
+			
+			//Klassenbeginn
+			javacode[i] += "{";
+		}
+	}
+	
+	
+	
+	
+	/*
+	 * Objekteinstanzen erstellen
+	 * new Klassenname: Argumente
+	 */
+	public void newObjekt(int i, String zeichenkette) //i=Zeile
+	{		
+		String[] words = zeichenkette.trim().split(":");
+		
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		if(words[0].split("\\s+").length > 2)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Hinter dem Klassennamen stehen unbekannte Zeichen!";
+			return;
+		}
+		else if(words[0].split("\\s+").length < 2)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!";
+			return;
+		}
+		
+		
+		/*
+		 * Übersetzung in Javacode
+		 */
+		javacode[i] += "new ";
+		
+		//Klassenname
+		words = words[0].trim().split("\\s+");
+		javacode[i] += words[1];
+		
+        
+        //Argumente
+		javacode[i] += "(";
+		if(zeichenkette.contains(":"))
+		{
+		    words = zeichenkette.trim().split(":");
+	        javacode[i] += words[1];
+		}
+		javacode[i] += ");";
 	}
 	
 
@@ -231,17 +310,21 @@ public class Compiler
 		}
 		
 		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
-		words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
+		words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");;
+		
 		
 		/*
 		 * Den Code übersetzen
 		 */
 		javacode[i] += words[0] + "(";
-		//Die Variable wörter neu bestimmen
 		words = dokument.getText(i).trim().split(":");
 		
 		//Argumente dem Javacode hinzufügen
-		javacode[i] += words[1].trim() + ");";
+		if(dokument.getText(i).contains(":"))
+		{
+			javacode[i] += words[1].trim();
+		}
+		javacode[i] += ");";
 	}
 	
 	
@@ -336,13 +419,19 @@ public class Compiler
 		//Wird nur ausgeführt, wenn die Variable eine Zuwesiung besitzt
 		if(dokument.getText(i).contains("="))
 		{
-			String[] bedingung = dokument.getText(i).trim().split("=");
+			String[] wert = dokument.getText(i).trim().split("=");
 			
-			words = bedingung[0].split("\\s+");
-			javacode[i] += " = " + bedingung[1];
+			javacode[i] += " = ";
+					
+			//Objektinstanz oder Variablenwert erstellen
+			if(wert[1].contains("new"))
+				newObjekt(i, wert[1]);
+			else
+			{
+				words = wert[0].split("\\s+");
+				javacode[i] += wert[1];
+			}
 		}
-	
-		javacode[i] += ";";
 	}
 
 
