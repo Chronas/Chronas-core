@@ -57,20 +57,20 @@ public class Compiler
 			for (int j = 0; j < limitation; j++) 
 			{
 				javacode[i] += "   ";
-			}
+			}	
 			
-			
-			
+
 			
 			/*
 			 * Befehle prüfen und übersetzen
 			 */
-			switch(words[0].toLowerCase())
+			switch(words[0].replace(":", "").toLowerCase())
 			{
-				//Methoden und Klassen
+				//Methoden, Klassen & Interfaces
 				case "class" : klasse(i); startDerKlasse = false; limitation++;  break;
-				case "run"   : runMethode(i); break;		//Methode ausführen
+				case "interface" : schnittstelle(i); limitation++;  break;
 				case "method": methode(i); limitation++; break;
+				case "run"   : runMethode(i); break;		//Methode ausführen
 				case "import": importClasses(i); break; 
 			
 				
@@ -85,17 +85,19 @@ public class Compiler
 				/*
 				 * Variablen und Objekte
 				 */
-				case "var": variable(i); break;
+				case "var": variable(i, dokument.getText(i)); break;
 				case "new": newObjekt(i, dokument.getText(i)); break;
 				
-					
+				//try, catch & finally
+				case "try": tryBlock(i); limitation++; break;
+				case "catch": catchBlock(i, limitation); break;
+				case "finally": finallyBlock(i, limitation); break;
 				
 				/*
 				 * Javacode & Kommentar
 				 */
 				case "java": for (int j = 1; j < words.length; j++)   //Javacode
-								javacode[i] += words[j] + " ";
-						     break;
+								javacode[i] += words[j] + " "; break;
 				default: if(!dokument.getText(i).trim().equals("") && dokument.getText(i).trim() != null)
 							javacode[i] += "//" + dokument.getText(i).trim(); //Kommentar	
 			}
@@ -106,10 +108,128 @@ public class Compiler
 	
 	
 	
+	/*
+	 * try Block
+	 * try: Stream, Stream
+	 */
+	public void tryBlock(int i) 
+	{
+		String[] words = dokument.getText(i).trim().split(":");
+		
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		if(words[0].trim().split("\\s+").length > 1)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Hinter dem try stehen unbekannte Zeichen!";
+			return;
+		}
+		
+		
+		/*
+		 * Übersetzung in Javacode
+		 */
+		javacode[i] += "try";
+		
+        
+        //Streams, die geöffnet werden sollen in Klammern schreiben
+		if(dokument.getText(i).contains(":"))
+		{
+			words = words[1].trim().split(",");
+			
+			javacode[i] += "(";
+			if(words.length > 1)
+			for (int j = 0; j < words.length-1; j++) 
+			{
+				variable(i, words[j]);
+				javacode[i] += ", ";
+			}
+			variable(i, words[words.length-1]);
+			
+			javacode[i] += ")";
+		}
+		
+		javacode[i] += "{";
+	}
+	
+	
+	
 	
 	/*
-	 * Mehtode erstellen:
-	 * method rückgabetyp name <modifizierer>: parameter
+	 * catch Block
+	 * catch: Error
+	 */
+	public void catchBlock(int i, int limitation)
+	{
+		String[] words = dokument.getText(i).trim().split(":");
+		
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		if(words[0].trim().split("\\s+").length > 1)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Hinter dem catch stehen unbekannte Zeichen!";
+			return;
+		}
+		
+		
+		/*
+		 * Übersetzung in Javacode
+		 */
+		//Einrückung anpassen
+		javacode[i] = "";
+		
+		for (int j = 0; j < limitation-1; j++) 
+		{
+			javacode[i] += "   ";
+		}
+		javacode[i] += "}"; 
+		//Javacode
+		javacode[i] += "catch(" + words[1].trim() + " e" + "){";		
+	}
+	
+	
+	
+	
+	/*
+	 * finally Block
+	 * finally
+	 */
+	public void finallyBlock(int i, int limitation) 
+	{
+		String[] words = dokument.getText(i).trim().split("\\s+");
+		
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		if(words.length > 1)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Hinter finally stehen unbekannte Zeichen!";
+			return;
+		}
+		
+		
+		/*
+		 * Übersetzung in Javacode
+		 */
+		//Einrückung anpassen
+		javacode[i] = "";
+		
+		for (int j = 0; j < limitation-1; j++) 
+		{
+			javacode[i] += "   ";
+		}
+		javacode[i] += "}"; 
+		//Javacode
+		javacode[i] += "finally{";
+	}
+
+
+
+
+	/*
+	 * Klasse erstellen:
+	 * class name <modifizierer> extends Test, Test1
 	 */
 	public void klasse(int i) //i=Zeile
 	{		
@@ -182,6 +302,81 @@ public class Compiler
 			}
 			
 			//Klassenbeginn
+			javacode[i] += "{";
+		}
+	}
+	
+	
+	
+	
+	/*
+	 * Schnittstelle erstellen:
+	 * interface name <modifizierer> extends Test, Test1
+	 */
+	public void schnittstelle(int i) //i=Zeile
+	{		
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		String[] words = dokument.getText(i).trim().split("<");
+		int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
+		if(length > 2) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
+			return;
+		}
+		else if(length == 1) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Schnittstellenname fehlt!";
+			return;
+		}
+		words = words[1].trim().split(",");
+		length = words.length;
+		if(length > 1) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Ein Interface darf nur von einer Klasse oder einem Interface erben!";
+			return;
+		}
+		
+		//Grammatik innerhalb des Diamantoperators
+		if(words.length == 2)
+		{
+			words = words[1].split(">"); 
+			if(words.length != 1  && !dokument.getText(i).contains("extends")) 
+			{
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!";
+				return;
+			}
+		}
+		
+		//Modifizierer wie public, private, final, static
+		words = dokument.getText(i).trim().split("<");
+		if(words.length == 2)
+		{
+			words = words[1].trim().split(">");
+			String   modifizierer = words[0].trim().replace(",", " ");
+			javacode[i] += modifizierer + " ";
+		}
+		
+		//Interfacename 
+		words = dokument.getText(i).trim().split("\\s+");
+		words = words[1].trim().split("<");
+		javacode[i] += "interface " + words[0];
+		
+		//Vererbung
+		if(dokument.getText(i).contains("extends"))
+		{
+			//Klassen rausfiltern
+			words = dokument.getText(i).trim().split("extends");
+			words = words[1].trim().split(",");
+			
+			//Vererbung
+			if(!words[0].trim().equals(""))
+			{
+				javacode[i] += " extends " + words[0].trim();
+			}
+			
+			//Schnittstellenbeginn
 			javacode[i] += "{";
 		}
 	}
@@ -368,58 +563,60 @@ public class Compiler
 	 * Variable erstellen:
 	 * var variablentyp name
 	 */
-	public void variable(int i) 
+	public void variable(int i, String zeichenkette) 
 	{
 		/*
 		 * Grammatiküberprüfung und Fehlerausgabe
 		 */
 		String[] words;
+		zeichenkette = zeichenkette.replace("var", "");
 		
-		if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
+		if(zeichenkette.contains("<") && zeichenkette.contains(">"))
 		{
-			words = dokument.getText(i).trim().split("<");
+			words = zeichenkette.trim().split("<");
 			words = words[0].trim().split("\\s+");
 		}
-		else if(dokument.getText(i).contains("="))
+		else if(zeichenkette.contains("="))
 		{
-			words = dokument.getText(i).trim().split("=");
+			words = zeichenkette.trim().split("=");
 			words = words[0].trim().split("\\s+");
 		}
 		else
-			words = dokument.getText(i).trim().split("\\s+");
+			words = zeichenkette.trim().split("\\s+");
 		
-		if(words.length > 3) 
+		if(words.length > 2) 
 		{
+			System.out.println(words[0]);
 			javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Namen kommen unbekannte Zeichen!";
 			return;
 		}
-		else if(words.length < 3)
+		else if(words.length < 2)
 		{
-			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Name, der Rückgbetyp oder beides fehlt!";
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Name, der Rückgabetyp oder beides fehlt!";
 			return;
 		}
 		
 		//Modifizierer wie public, private, final, static
-		words = dokument.getText(i).trim().split("<");
+		words = zeichenkette.trim().split("<");
 		if(words.length == 2)
 		{
 			words = words[1].trim().split(">");
-			String   modifizierer = words[0].trim().replace(",", " ");
+			String modifizierer = words[0].trim().replace(",", " ");
 			javacode[i] += modifizierer + " ";
 		}
 		
 		//Variable erstellen
-		if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
-			words = dokument.getText(i).trim().split("<");
+		if(zeichenkette.contains("<") && zeichenkette.contains(">"))
+			words = zeichenkette.trim().split("<");
 		else 
-			words = dokument.getText(i).trim().split("=");
+			words = zeichenkette.trim().split("=");
 		words = words[0].trim().split("\\s+");
-		javacode[i] += words[1] + " " + words[2];
+		javacode[i] += words[0] + " " + words[1];
 		
 		//Wird nur ausgeführt, wenn die Variable eine Zuwesiung besitzt
-		if(dokument.getText(i).contains("="))
+		if(zeichenkette.contains("="))
 		{
-			String[] wert = dokument.getText(i).trim().split("=");
+			String[] wert = zeichenkette.trim().split("=");
 			
 			javacode[i] += " = ";
 					
@@ -429,7 +626,7 @@ public class Compiler
 			else
 			{
 				words = wert[0].split("\\s+");
-				javacode[i] += wert[1];
+				javacode[i] += wert[1].trim();
 			}
 		}
 	}
