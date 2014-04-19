@@ -15,14 +15,14 @@ public class ChrDokument
 			 * Zeilen lesen und abspeichern
 			 */
 			BufferedReader in = new BufferedReader(new FileReader(pfad));
-			int länge = 0;
+			int length = 0;
 			//Länge des Dokuments herausfinden
-			for(int i=0; in.readLine() != null; länge++){}
+			for(int i=0; in.readLine() != null; length++){}
 			
 			//Dokument erstellen
-			dokument = new String[länge];
+			dokument = new String[length];
 			
-			System.out.println("Zeilen: " + länge);
+			System.out.println("Zeilen: " + length);
 			
 			//Dokument abspeichern
 			in = new BufferedReader(new FileReader(pfad));
