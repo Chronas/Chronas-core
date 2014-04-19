@@ -4,7 +4,7 @@ import java.io.*;
 
 public class ChrDokument 
 {
-	//In diesem Array wird das gesamte Dokument in einzelne Wˆrter gesplitet gespeichert
+	//In diesem Array wird das gesamte Dokument in einzelne W√∂rter gesplitet gespeichert
 	String[] dokument = null;
 	
 	public ChrDokument(File pfad)
@@ -15,14 +15,14 @@ public class ChrDokument
 			 * Zeilen lesen und abspeichern
 			 */
 			BufferedReader in = new BufferedReader(new FileReader(pfad));
-			int l‰nge = 0;
-			//L‰nge des Dokuments herausfinden
-			for(int i=0; in.readLine() != null; l‰nge++){}
+			int l√§nge = 0;
+			//L√§nge des Dokuments herausfinden
+			for(int i=0; in.readLine() != null; l√§nge++){}
 			
 			//Dokument erstellen
-			dokument = new String[l‰nge];
+			dokument = new String[l√§nge];
 			
-			System.out.println("Zeilen: " + l‰nge);
+			System.out.println("Zeilen: " + l√§nge);
 			
 			//Dokument abspeichern
 			in = new BufferedReader(new FileReader(pfad));
@@ -31,6 +31,8 @@ public class ChrDokument
 				dokument[i] = in.readLine(); 
 			}
 			
+			//Schlie√üen des Datenstroms
+			in.close();
 		} catch (IOException e) 
 		{
 			e.printStackTrace();
