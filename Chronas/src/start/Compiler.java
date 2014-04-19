@@ -64,44 +64,51 @@ public class Compiler
 			/*
 			 * Befehle prüfen und übersetzen
 			 */
-			switch(words[0].replace(":", "").toLowerCase())
+			try//Wenn ein Fehler auftritt wird in den catch-Block gewechselt, wo eine Fehlermeldung in den Javacode geschrieben wird.
 			{
-				//Methoden, Klassen & Interfaces
-				case "class" : klasse(i); startDerKlasse = false; limitation++;  break;
-				case "interface" : schnittstelle(i); limitation++;  break;
-				case "method": methode(i); limitation++; break;
-				case "run"   : runMethode(i); break;		//Methode ausführen
-				case "import": importClasses(i); break; 
-			
+				switch(words[0].replace(":", "").toLowerCase())
+				{
+					//Methoden, Klassen & Interfaces
+					case "class" : klasse(i); startDerKlasse = false; limitation++;  break;
+					case "interface" : schnittstelle(i); limitation++;  break;
+					case "method": methode(i); limitation++; break;
+					case "run"   : runMethode(i); break;		//Methode ausführen
+					case "import": importClasses(i); break; 
 				
-				/*
-				 * Kontrollstrukturen
-				 */
-				case "for": forSchleife(i); limitation++; break;
-				case "if":  ifBedingung(i); limitation++; break;
-				case "}":   beendeContainer(i, limitation); limitation--; break;
-				
-				
-				/*
-				 * Variablen und Objekte
-				 */
-				case "var": variable(i, dokument.getText(i)); break;
-				case "new": newObjekt(i, dokument.getText(i)); break;
-				
-				//try, catch & finally
-				case "try": tryBlock(i); limitation++; break;
-				case "catch": catchBlock(i, limitation); break;
-				case "finally": finallyBlock(i, limitation); break;
-				
-				/*
-				 * Javacode & Kommentar
-				 */
-				case "java": for (int j = 1; j < words.length; j++)   //Javacode
-								javacode[i] += words[j] + " "; break;
-				default: if(!dokument.getText(i).trim().equals("") && dokument.getText(i).trim() != null)
-							javacode[i] += "//" + dokument.getText(i).trim(); //Kommentar	
+					
+					/*
+					 * Kontrollstrukturen
+					 */
+					case "for": forSchleife(i); limitation++; break;
+					case "if":  ifBedingung(i); limitation++; break;
+					case "}":   beendeContainer(i, limitation); limitation--; break;
+					
+					
+					/*
+					 * Variablen und Objekte
+					 */
+					case "var": variable(i, dokument.getText(i)); break;
+					case "new": newObjekt(i, dokument.getText(i)); break;
+					
+					//try, catch & finally
+					case "try": tryBlock(i); limitation++; break;
+					case "catch": catchBlock(i, limitation); break;
+					case "finally": finallyBlock(i, limitation); break;
+					
+					/*
+					 * Javacode & Kommentar
+					 */
+					case "java": for (int j = 1; j < words.length; j++)   //Javacode
+									javacode[i] += words[j] + " "; break;
+					default: if(!dokument.getText(i).trim().equals("") && dokument.getText(i).trim() != null)
+								javacode[i] += "//" + dokument.getText(i).trim(); //Kommentar	
+				}
 			}
-			
+			catch(Error e)
+			{
+				System.out.println("Fehler");
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Es existiert ein unbekannter Fehler!";
+			}
 		}
 	}
 	
@@ -171,11 +178,12 @@ public class Compiler
 			javacode[i] += "Fehler in Zeile " + (i+1) + ": Hinter dem catch stehen unbekannte Zeichen!";
 			return;
 		}
+		else if(words.length == 1)
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Es wurde keine Exception angegeben!";
+			return;
+		}
 		
-		
-		/*
-		 * Übersetzung in Javacode
-		 */
 		//Einrückung anpassen
 		javacode[i] = "";
 		
@@ -183,9 +191,24 @@ public class Compiler
 		{
 			javacode[i] += "   ";
 		}
-		javacode[i] += "}"; 
-		//Javacode
-		javacode[i] += "catch(" + words[1].trim() + " e" + "){";		
+		
+		
+		/*
+		 * Übersetzung in Javacode
+		 */		
+		words = words[1].trim().split(",");
+
+		javacode[i] += "}catch(";
+		
+		//Multicatching
+		if(words.length > 1)
+			for (int j = 0; j < words.length-1; j++) 
+			{
+				javacode[i] += words[j].trim() + " | ";
+			}
+		
+		javacode[i] += words[words.length -1].trim();
+		javacode[i] += " e" + "){";		
 	}
 	
 	
