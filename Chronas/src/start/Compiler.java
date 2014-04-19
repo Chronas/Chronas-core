@@ -106,7 +106,6 @@ public class Compiler
 			}
 			catch(Error e)
 			{
-				System.out.println("Fehler");
 				javacode[i] += "Fehler in Zeile " + (i+1) + ": Es existiert ein unbekannter Fehler!";
 			}
 		}
@@ -256,76 +255,83 @@ public class Compiler
 	 */
 	public void klasse(int i) //i=Zeile
 	{		
-		/*
-		 * Grammatiküberprüfung und Fehlerausgabe
-		 */
-		String[] words = dokument.getText(i).trim().split("<");
-		int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
-		if(length > 2) 
+		try
 		{
-			javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
-			return;
-		}
-		else if(length == 1) 
-		{
-			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!";
-			return;
-		}
-		
-		//Grammatik innerhalb des Diamantoperators
-		if(words.length == 2)
-		{
-			words = words[1].split(">"); 
-			if(words.length != 1  && !dokument.getText(i).contains("extends")) 
+			/*
+			 * Grammatiküberprüfung und Fehlerausgabe
+			 */
+			String[] words = dokument.getText(i).trim().split("<");
+			int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
+			if(length > 2) 
 			{
-				javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!";
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
 				return;
 			}
-		}
-		
-		//Modifizierer wie public, private, final, static
-		words = dokument.getText(i).trim().split("<");
-		if(words.length == 2)
-		{
-			words = words[1].trim().split(">");
-			String   modifizierer = words[0].trim().replace(",", " ");
-			javacode[i] += modifizierer + " ";
-		}
-		
-		//Klassenname 
-		words = dokument.getText(i).trim().split("\\s+");
-		words = words[1].trim().split("<");
-		javacode[i] += "class " + words[0];
-		
-		//Vererbung
-		if(dokument.getText(i).contains("extends"))
-		{
-			//Klassen rausfiltern
-			words = dokument.getText(i).trim().split("extends");
-			words = words[1].trim().split(",");
+			else if(length == 1) 
+			{
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!";
+				return;
+			}
+			
+			//Grammatik innerhalb des Diamantoperators
+			if(words.length == 2)
+			{
+				words = words[1].split(">"); 
+				if(words.length != 1  && !dokument.getText(i).contains("extends")) 
+				{
+					javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!";
+					return;
+				}
+			}
+			
+			//Modifizierer wie public, private, final, static
+			words = dokument.getText(i).trim().split("<");
+			if(words.length == 2)
+			{
+				words = words[1].trim().split(">");
+				String   modifizierer = words[0].trim().replace(",", " ");
+				javacode[i] += modifizierer + " ";
+			}
+			
+			//Klassenname 
+			words = dokument.getText(i).trim().split("\\s+");
+			words = words[1].trim().split("<");
+			javacode[i] += "class " + words[0];
 			
 			//Vererbung
-			if(!words[0].trim().equals(""))
+			if(dokument.getText(i).contains("extends"))
 			{
-				javacode[i] += " extends " + words[0].trim();
-			}
-			
-			//Interfaces
-			if(words.length > 1)
-			{
-				javacode[i] += " implements ";
-				if(words.length > 2)
+				//Klassen rausfiltern
+				words = dokument.getText(i).trim().split("extends");
+				words = words[1].trim().split(",");
+				
+				//Vererbung
+				if(!words[0].trim().equals(""))
 				{
-					for (int j = 1; j < words.length-1; j++) 
-					{
-						javacode[i] += words[j].trim() + ", ";
-					}
+					javacode[i] += " extends " + words[0].trim();
 				}
-				javacode[i] += words[words.length-1].trim();
+				
+				//Interfaces
+				if(words.length > 1)
+				{
+					javacode[i] += " implements ";
+					if(words.length > 2)
+					{
+						for (int j = 1; j < words.length-1; j++) 
+						{
+							javacode[i] += words[j].trim() + ", ";
+						}
+					}
+					javacode[i] += words[words.length-1].trim();
+				}
+				
+				//Klassenbeginn
+				javacode[i] += "{";
 			}
-			
-			//Klassenbeginn
-			javacode[i] += "{";
+		}
+		catch(ArrayIndexOutOfBoundsException e)
+		{
+			javacode[i] = "Fehler in Zeile " + (i+1) + ": Es trat ein unbekannter Fehler auf!";
 		}
 	}
 	
@@ -338,69 +344,76 @@ public class Compiler
 	 */
 	public void schnittstelle(int i) //i=Zeile
 	{		
-		/*
-		 * Grammatiküberprüfung und Fehlerausgabe
-		 */
-		String[] words = dokument.getText(i).trim().split("<");
-		int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
-		if(length > 2) 
+		try
 		{
-			javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
-			return;
-		}
-		else if(length == 1) 
-		{
-			javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Schnittstellenname fehlt!";
-			return;
-		}
-		words = words[1].trim().split(",");
-		length = words.length;
-		if(length > 1) 
-		{
-			javacode[i] += "Fehler in Zeile " + (i+1) + ": Ein Interface darf nur von einer Klasse oder einem Interface erben!";
-			return;
-		}
-		
-		//Grammatik innerhalb des Diamantoperators
-		if(words.length == 2)
-		{
-			words = words[1].split(">"); 
-			if(words.length != 1  && !dokument.getText(i).contains("extends")) 
+			/*
+			 * Grammatiküberprüfung und Fehlerausgabe
+			 */
+			String[] words = dokument.getText(i).trim().split("<");
+			int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
+			if(length > 2) 
 			{
-				javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!";
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
 				return;
 			}
-		}
-		
-		//Modifizierer wie public, private, final, static
-		words = dokument.getText(i).trim().split("<");
-		if(words.length == 2)
-		{
-			words = words[1].trim().split(">");
-			String   modifizierer = words[0].trim().replace(",", " ");
-			javacode[i] += modifizierer + " ";
-		}
-		
-		//Interfacename 
-		words = dokument.getText(i).trim().split("\\s+");
-		words = words[1].trim().split("<");
-		javacode[i] += "interface " + words[0];
-		
-		//Vererbung
-		if(dokument.getText(i).contains("extends"))
-		{
-			//Klassen rausfiltern
-			words = dokument.getText(i).trim().split("extends");
-			words = words[1].trim().split(",");
-			
-			//Vererbung
-			if(!words[0].trim().equals(""))
+			else if(length == 1) 
 			{
-				javacode[i] += " extends " + words[0].trim();
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Der Schnittstellenname fehlt!";
+				return;
+			}
+			words = words[1].trim().split(",");
+			length = words.length;
+			if(length > 1) 
+			{
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Ein Interface darf nur von einer Klasse oder einem Interface erben!";
+				return;
 			}
 			
-			//Schnittstellenbeginn
-			javacode[i] += "{";
+			//Grammatik innerhalb des Diamantoperators
+			if(words.length == 2)
+			{
+				words = words[1].split(">"); 
+				if(words.length != 1  && !dokument.getText(i).contains("extends")) 
+				{
+					javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!";
+					return;
+				}
+			}
+			
+			//Modifizierer wie public, private, final, static
+			words = dokument.getText(i).trim().split("<");
+			if(words.length == 2)
+			{
+				words = words[1].trim().split(">");
+				String   modifizierer = words[0].trim().replace(",", " ");
+				javacode[i] += modifizierer + " ";
+			}
+			
+			//Interfacename 
+			words = dokument.getText(i).trim().split("\\s+");
+			words = words[1].trim().split("<");
+			javacode[i] += "interface " + words[0];
+			
+			//Vererbung
+			if(dokument.getText(i).contains("extends"))
+			{
+				//Klassen rausfiltern
+				words = dokument.getText(i).trim().split("extends");
+				words = words[1].trim().split(",");
+				
+				//Vererbung
+				if(!words[0].trim().equals(""))
+				{
+					javacode[i] += " extends " + words[0].trim();
+				}
+				
+				//Schnittstellenbeginn
+				javacode[i] += "{";
+			}
+		}
+		catch(ArrayIndexOutOfBoundsException e)
+		{
+			javacode[i] = "Fehler in Zeile " + (i+1) + ": Es trat ein unbekannter Fehler auf!";
 		}
 	}
 	
