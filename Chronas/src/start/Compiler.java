@@ -72,7 +72,8 @@ public class Compiler
 					case "class" : klasse(i); startDerKlasse = false; limitation++;  break;
 					case "interface" : schnittstelle(i); limitation++;  break;
 					case "method": methode(i); limitation++; break;
-					case "run"   : runMethode(i); break;		//Methode ausführen
+					case "run"   : runMethode(i, dokument.getText(i)); break;		//Methode ausführen
+					case "return": returnMethode(i); break;							//Methode verlassen
 					case "import": importClasses(i); break; 
 				
 					
@@ -80,7 +81,9 @@ public class Compiler
 					 * Kontrollstrukturen
 					 */
 					case "for": forSchleife(i); limitation++; break;
+					case "while": whileSchleife(i); limitation++; break;
 					case "if":  ifBedingung(i); limitation++; break;
+					case "else":elseBedingung(i, limitation); break;
 					case "}":   beendeContainer(i, limitation); limitation--; break;
 					
 					
@@ -88,6 +91,7 @@ public class Compiler
 					 * Variablen und Objekte
 					 */
 					case "var": variable(i, dokument.getText(i)); break;
+					case "assign": variableZuweisung(i); break;
 					case "new": newObjekt(i, dokument.getText(i)); break;
 					
 					//try, catch & finally
@@ -324,10 +328,10 @@ public class Compiler
 					}
 					javacode[i] += words[words.length-1].trim();
 				}
-				
-				//Klassenbeginn
-				javacode[i] += "{";
 			}
+			
+			//Klassenbeginn
+			javacode[i] += "{";
 		}
 		catch(ArrayIndexOutOfBoundsException e)
 		{
@@ -458,7 +462,7 @@ public class Compiler
 		if(zeichenkette.contains(":"))
 		{
 		    words = zeichenkette.trim().split(":");
-	        javacode[i] += words[1];
+	        javacode[i] += words[1].trim();
 		}
 		javacode[i] += ");";
 	}
@@ -471,48 +475,61 @@ public class Compiler
 	 * method rückgabetyp name <modifizierer>: parameter
 	 */
 	public void methode(int i) //i=Zeile
-	{		
-		String[] words;
-		
-		/*
-		 * Grammatiküberprüfung und Fehlerausgabe
-		 */
-		//Die ersten Wörter vor den Argumenten & Modifizierern herausfiltern
-		if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
-			words = dokument.getText(i).trim().split("<");
-		else if(dokument.getText(i).contains(":"))
-			words = dokument.getText(i).trim().split(":");
-		else
-			words = dokument.getText(i).trim().split("\\s+");
+	{	
+		try
+		{
+			String[] words;
 			
-		//Anzahl der Wörter vor den Modifizierern & Argumenten überprüfen
-		int length = words[0].split("\\s+").length;	
-		if(length != 3) 
-		{
-			javacode[i] += "Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!";
-			return;
+			/*
+			 * Grammatiküberprüfung und Fehlerausgabe
+			 */
+			//Die ersten Wörter vor den Argumenten & Modifizierern herausfiltern
+			if(dokument.getText(i).contains("<") && dokument.getText(i).contains(">"))
+				words = dokument.getText(i).trim().split("<");
+			else if(dokument.getText(i).contains(":"))
+				words = dokument.getText(i).trim().split(":");
+			else
+				words = dokument.getText(i).trim().split("\\s+");
+			
+			
+			//Modifizierer wie public, private, final, static
+			words = dokument.getText(i).trim().split("<");
+			if(words.length == 2)
+			{
+				words = words[1].trim().split(">");
+				String   modifizierer = words[0].trim().replace(",", " ");
+				javacode[i] += modifizierer + " ";
+			}
+			
+			//Rückgabetyp
+			words = dokument.getText(i).trim().split("\\s+");
+			javacode[i] += words[1].trim() + " ";
+			
+			//Name wird nur eingetragen, wenn der Name ungleich "constructor" ist
+			words = words[2].trim().split("<");
+			if(!words[0].trim().equals("constructor"))
+				javacode[i] += words[0].trim().replace(":", "").trim();
+				
+	        
+	        //Argumente
+		    words = dokument.getText(i).trim().split(":");
+		    if(words.length > 1)
+		    	javacode[i] += "(" + words[1].trim() + ")";
+		    
+		    //Throws Klausel
+		    if(dokument.getText(i).contains("throws"))
+		    {
+		    	words = dokument.getText(i).split("throws");
+		    	words = words[1].split(":");
+		    	javacode[i] += " throws " + words[0].replace("throws", "").trim();
+		    }
+		    
+		    javacode[i] += "{";
 		}
-		
-		//Modifizierer wie public, private, final, static
-		words = dokument.getText(i).trim().split("<");
-		if(words.length == 2)
+		catch(ArrayIndexOutOfBoundsException e)
 		{
-			words = words[1].trim().split(">");
-			String   modifizierer = words[0].trim().replace(",", " ");
-			javacode[i] += modifizierer + " ";
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Ein unbekannter Fehler ist aufgetaucht!";
 		}
-		
-		//Rückgabetyp
-		words = dokument.getText(i).trim().split("\\s+");
-		javacode[i] += words[1] + " ";
-		
-		//Name 
-		words = words[2].trim().split("<");
-		javacode[i] += words[0].replace(":", "") + "(";
-        
-        //Argumente
-	    words = dokument.getText(i).trim().split(":");
-        javacode[i] += words[1] + "){";
 	}
 	
 	
@@ -522,15 +539,16 @@ public class Compiler
 	 * Methode ausführen
 	 * Die Argumente sind hinter dem Doppelpunkt und werden durch Kommas getrennt
 	 */
-	public void runMethode(int i) //i=Zeile
+	public void runMethode(int i, String zeichenkette) //i=Zeile
 	{		
 		/*
 		 * Grammatiküberprüfung und Fehlerausgabe
 		 */
-		String[] words = dokument.getText(i).trim().split(":");
-		int length = words[0].split("\\s+").length;	
+		String[] words = zeichenkette.trim().split(":");
+		int length = words[0].trim().split("\\s+").length;	
 		if(length != 2) 
 		{
+			System.out.println(length);
 			javacode[i] += "Fehler in Zeile " + (i+1) + ": Nach dem Methodennamen stehen unbekannte Zeichen!";
 			return;
 		}
@@ -541,21 +559,40 @@ public class Compiler
 		}
 		
 		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
-		words = dokument.getText(i).replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");;
+		words = zeichenkette.replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");;
 		
 		
 		/*
 		 * Den Code übersetzen
 		 */
 		javacode[i] += words[0] + "(";
-		words = dokument.getText(i).trim().split(":");
+		words = zeichenkette.trim().split(":");
 		
 		//Argumente dem Javacode hinzufügen
-		if(dokument.getText(i).contains(":"))
+		if(zeichenkette.contains(":"))
 		{
 			javacode[i] += words[1].trim();
 		}
 		javacode[i] += ");";
+	}
+	
+	
+	
+	
+	/*
+	 * Methode verlassen:
+	 * return Rückgabewert
+	 */
+	public void returnMethode(int i) //i=Zeile
+	{			
+		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
+		String words = dokument.getText(i).replace("return", "").trim();
+		
+		
+		/*
+		 * Den Code übersetzen
+		 */
+		javacode[i] += "return " + words + ";";
 	}
 	
 	
@@ -656,23 +693,86 @@ public class Compiler
 			
 			javacode[i] += " = ";
 					
-			//Objektinstanz oder Variablenwert erstellen
-			if(wert[1].contains("new"))
-				newObjekt(i, wert[1]);
-			else
+			//Wenn ein Methodenaufruf existiert
+			if(wert[1].contains("run"))
 			{
-				words = wert[0].split("\\s+");
-				javacode[i] += wert[1].trim();
+				words = dokument.getText(i).trim().split("=");
+				runMethode(i, words[1]);
+			}
+			//Wenn ein neues Objekt erzeugt wird
+			else if(wert[1].contains("new"))
+			{
+				words = dokument.getText(i).trim().split("=");
+				newObjekt(i, words[1]);
+			}
+			else //Primitive Wertzuweisung
+			{
+				words = dokument.getText(i).trim().split("=");
+				javacode[i] += words[1].trim() + ";";
+			}		
+			return;
+		}
+		javacode[i] += ";";
+	}
+	
+	
+	
+	
+	/*
+	 * Variable einen Wert zuweisen
+	 * assign variablenname = wertoderMethodenaufruf
+	 */
+	public void variableZuweisung(int i) 
+	{
+		/*
+		 * Grammatiküberprüfung und Fehlerausgabe
+		 */
+		String[] words = dokument.getText(i).toLowerCase().replace("assign", "").replace("=", " ").trim().split("\\s+");
+		
+		if(words.length < 2) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Ein Teil des Befehls fehlt!";
+			return;
+		}
+		else if(words.length > 2) 
+		{
+			//Test auf einen Methodenaufruf in der Zuweisung
+			if(!(words[1].contains("run") || words[1].contains("new")))
+			{
+				javacode[i] += "Fehler in Zeile " + (i+1) + ": Ein Teil des Befehls fehlt!";
+				return;
 			}
 		}
+		
+		/*
+		 * Übersetzen in Javacode
+		 */
+		javacode[i] += words[0] + " = ";
+		
+		//Wenn ein Methodenaufruf existiert
+		if(words[1].contains("run"))
+		{
+			words = dokument.getText(i).trim().split("=");
+			runMethode(i, words[1]);
+		}
+		//Wenn ein neues Objekt erzeugt wird
+		else if(words[1].contains("new"))
+		{
+			words = dokument.getText(i).trim().split("=");
+			newObjekt(i, words[1]);
+		}
+		else //Primitive Wertzuweisung
+		{
+			words = dokument.getText(i).trim().split("=");
+			javacode[i] += words[1].trim() + ";";
+		}	
 	}
 
 
 
 	/* 
-	 * for-Schleife mit der Struktur:
+	 * for-Schleife:
 	 * for variablenname=startwert to endwert "step schrittgröße"
-	 * übersetzt
 	 */
 	public void forSchleife(int i) //i=Zeile
 	{	
@@ -723,6 +823,33 @@ public class Compiler
 	
 	
 	
+	/* 
+	 * while-Schleife:
+	 * while bedingung
+	 */
+	public void whileSchleife(int i) //i=Zeile
+	{	
+		/*
+		 * Grammatikprüfung
+		 */
+		String[] words = dokument.getText(i).trim().split("\\s+");
+		if(words.length == 1) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Die Bedingung fehlt!";
+			return;
+		}
+		
+		
+		//Die Bedingung aus der Eingabe rausfiltern
+		String bedingung = dokument.getText(i).replace("while", "").trim();
+		
+		//Die Bedingung dem Javacode hinzufügen
+		javacode[i] += "while(" + bedingung + "){";
+	}
+	
+	
+	
+	
 	
 	/*
 	 * If Bedingung erstellen:
@@ -730,11 +857,49 @@ public class Compiler
 	 */
 	public void ifBedingung(int i) 
 	{
+		/*
+		 * Grammatikprüfung
+		 */
+		String[] words = dokument.getText(i).trim().split("\\s+");
+		if(words.length == 1) 
+		{
+			javacode[i] += "Fehler in Zeile " + (i+1) + ": Die Bedingung fehlt!";
+			return;
+		}
+		
+		
 		//Die Bedingung aus der Eingabe rausfiltern
 		String bedingung = dokument.getText(i).replace("if", "").trim();
 		
 		//Die Bedingung dem Javacode hinzufügen
 		javacode[i] += "if(" + bedingung + "){";
+	}
+	
+	
+	
+	
+	/*
+	 * Else Bedingung erstellen:
+	 * else bedingung 
+	 */
+	public void elseBedingung(int i, int limitation) 
+	{
+		//Einrückung anpassen
+		javacode[i] = "";
+		for (int j = 0; j < limitation-1; j++) 
+		{
+			javacode[i] += "   ";
+		}
+		
+		//Die Bedingung dem Javacode hinzufügen
+		javacode[i] += "}else{";
+		
+		//Kommentare
+		if(dokument.getText(i).trim().split("\\s+").length > 1)
+		{
+			String words = dokument.getText(i).trim();
+			javacode[i] += "//" + words;
+		}
 	}
 	
 	
