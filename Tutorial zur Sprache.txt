@@ -13,6 +13,8 @@ Generelle Struktur:
 -Am Ende eines Befehls muss kein Semikolon oder ein anderes Schlusszeichen stehen, was die Sprache auch so einsteiger-
  freundlich macht, da sich da sehr viele Einsteiger in anderen Sprachen wie Java schwer tun.
 -Es darf nur ein Befehl pro Zeile stehen, was den Quellcode übersichtlicher macht.
+-Groß-und Kleinschreibung von Schlüsselwörtern wird ignoriert
+-Da der gesamte Code in Java Code übersetzt wird, kann man auch auf die gesamte Java Standartbibliothek zugreifen.
 
 
 Klassen:
@@ -20,16 +22,29 @@ Schlüsselwort: class
 Die Klassendefinition ist ähnlich wie in Java, nur dass die Modifizierer in spitze Klammern kommen.
 Bsp: class Hallo <public>
 
+Wenn eine Klasse von einer anderen erben soll oder von einem Interface die Methoden bekommen soll, wird
+die folgende Schreibweise benutzt:
+class Hallo <modifizierer> extends Elterklasse, interface, interface
+
 
 Methoden:
 Schlüsselwort: method
 Methodendefinitionen sind ähnlich wie die Klassen, wobei hinter dem Doppelpunkt die Parameter kommen.
 Nach dem Schlüsselwort kommt der Rückgabetyp, worauf der Name  folgt.
-Bsp: method void main<public, static, final>: String[] args
+Falls ein Fehler nicht direkt in der Methode behandet werden soll, muss er mit "throws" an die nächsthöhere weitergeleitet werden.
+Bsp: method void main<public, static, final> throws Exception: String[] args
+
+Falls ein Konstruktor erstellt werden soll, muss die Methode "constructor" benannt werden.
+Bsp:  method void constructor<public>: String beispiel
 
 Ein Aufruf einer Methode erfolgt ähnlich wie die Definiton, nur dass das Schlüsselwort "run" darstellt.
 Nach dem Schlüsselwort kommt der Methodenname und hinter dem Doppelpunkt folgen die Argumente.
-Bsp: run System.out.println: hallo
+Bsp: run System.out.println: "hallo"
+
+Soll eine Methode früher beendet werden, muss dies mit "return" geschehen und dabei der Rückgabetyp übergeben werden.
+Bsp: return "hallo welt"
+
+
 
 
 For-Schleife:
@@ -40,8 +55,13 @@ Bsp: for index=6 to 3 step 2
 
 If-Bedingung:
 Schlüsselwort: if
-Direkt nach dem Schlüsselwort kommt die Bedingung.
-Bsp: if test
+Direkt nach dem Schlüsselwort kommt die Bedingung, wonach noch ein else Block kommen kann, aber nicht muss.
+Bsp: if true
+	run System.out.print: "Beispiel"
+     else
+	run System.out.print: "Else"
+     }
+
 
 Kontainerende:
 Schlüsselwort: }
@@ -55,10 +75,14 @@ Bsp: if test
 Variablen:
 Schlüsselwort: var
 Eine Variable wird genauso wie in Java erstellt, mit der Abweichung, dass es das Schlüsselwort benutzt werden muss.
+Es können Objekte, Methoden oder primitive Werte für die Zuweisung verwendet verden.
 Es gibt auch die gleichen Variablentypen, wie in Java.
 Bsp:	var boolean test = true
 	var int test2
 	var String hallo = "Hallo " + test 
+
+Wenn einer Variable erst später ein Wert zugewiesen werden soll, muss das Schlüsselwort "assign" verwendet werden.
+Bsp: 
 
 
 Kommentare:
@@ -71,3 +95,30 @@ Schlüsselwort: java
 Alles was hinter dem Schlüsselwort steht wird als Javacode gewertet und so in den übersetzten Javacode übersetzt.
 Dies ist auch die einzige Möglichkeit in Chronas, mehrere Befehle pro Zeile zu schreiben.
 Bsp: java int a = 2;
+
+Importe:
+Schlüsselwort: import
+Sieht genauso aus wie in Java, nur muss kein Semikolon gesetzt werden.
+
+try, catch, finally:
+Schlüsselwörter: try, catch, finally
+Der try, catch, finally Block beginnt immer mit dem try, geht dann mit dem catch oder finally weiter und zum
+Schluss kann noch ein finally angehägt werden, falls es noch nicht vorher geschehen ist.
+Alles was beim try hinter dem Doppelpunkt kommt kann weggelassen werden.
+Auf den Error innerhalb eines catch Blocks kann mit der Variable "e" zugegriffen werden.
+Bsp: try: InputStream in = ClassLoader.getSystemResourceAsStream: "EastOfJava.txt"
+	run System.out.println: "Try"
+     catch: Error
+	run System.out.println: e.printStackTrace
+     finally
+	run System.out.println: "Finally"
+     }
+
+Auch Multicatching ist möglich: catch: Error, IOException
+	
+
+Interface:
+Schlüsselwort: interface
+Die Definition ist abgesehen von dem Schlüsselwort genauso wie bei einer Klasse.
+Ein Interface darf allerdings nur erben und keine anderen Interfaces implementieren!
+Bsp: interface Hallo <public> extends Test
