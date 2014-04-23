@@ -86,18 +86,27 @@ public class Compiler
 					case "else":elseBedingung(i, limitation); break;
 					case "}":   beendeContainer(i, limitation); limitation--; break;
 					
+					//try, catch & finally
+					case "try": tryBlock(i); limitation++; break;
+					case "catch": catchBlock(i, limitation); break;
+					case "finally": finallyBlock(i, limitation); break;
 					
 					/*
 					 * Variablen und Objekte
 					 */
 					case "var": variable(i, dokument.getText(i)); break;
-					case "assign": variableZuweisung(i); break;
+					case "assign": variableZuweisung(i); break;				//einer Variable einen Wert zuweisen
 					case "new": newObjekt(i, dokument.getText(i)); break;
 					
-					//try, catch & finally
-					case "try": tryBlock(i); limitation++; break;
-					case "catch": catchBlock(i, limitation); break;
-					case "finally": finallyBlock(i, limitation); break;
+					/*
+					 * Vereinfachte Methoden
+					 */
+					//Konsolenausgabemethoden
+					case "print":   javacode[i] += "System.out.print(" + dokument.getText(i).replace("print", "").replace(":", "").trim() + ");"; break;
+					case "println": javacode[i] += "System.out.println(" + dokument.getText(i).replace("println", "").replace(":", "").trim() + ");"; break;
+					case "printf":  javacode[i] += "System.out.printf(" + dokument.getText(i).replace("printf", "").replace(":", "").trim() + ");"; break;
+
+
 					
 					/*
 					 * Javacode & Kommentar
