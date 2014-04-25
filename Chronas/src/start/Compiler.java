@@ -22,6 +22,8 @@ public class Compiler
 	 */
 	public Compiler(ChrDokument dokument, File pfad)
 	{
+		Anzeige.konsole.setText("");
+		
 		this.dokument = dokument;
 		this.pfad = pfad;
 		
@@ -29,7 +31,12 @@ public class Compiler
 		
 		//Compilieren und javadatei estellen
 		compilieren();
-		speichern();
+		
+		if(Anzeige.konsole.getText().equals(""))
+		{
+			speichern();
+			Anzeige.konsole.append("Der Übersetzungsvorgang wurde erfolgreich abgeschlossen!");
+		}
 	}
 	
 	
