@@ -20,7 +20,7 @@ public class Anzeige
 {
 	JFrame frame = new JFrame("Chronas");
 	File f;//Pfad zur Datei
-	static JTextArea konsole = new JTextArea("Wählen Sie bitte einen Pfad aus!");
+	static JTextArea konsole = new JTextArea("Wählen Sie bitte eine Datei aus!");
 	
 	public Anzeige()
 	{
@@ -47,7 +47,7 @@ public class Anzeige
  		
  		//Pfadauswahl mit JButton
  		JButton pfadwahl = new JButton("...");			
- 		pfadwahl.setBounds(pfad.getWidth(), 0, 75, 40);
+ 		pfadwahl.setBounds(pfad.getWidth(), 0, 57, 40);
  		pfadwahl.setFont(font);
  		pfadwahl.setForeground(Color.white);
  		pfadwahl.setBackground(Color.gray);
@@ -75,7 +75,7 @@ public class Anzeige
  		
  		//Button zum compilieren
  		JButton compilieren = new JButton("Start");			
- 		compilieren.setBounds(0, 40, frame.getWidth()/2, 50);
+ 		compilieren.setBounds(0, 40, frame.getWidth()/2-9, 50);
  		compilieren.setFont(font);
  		compilieren.setForeground(Color.white);
  		compilieren.setBackground(Color.gray);
@@ -87,9 +87,16 @@ public class Anzeige
  			{
 				if(!pfad.getText().equals(""))
 				{
-					//Compiler erstellen und ihm das ChrDokument übergeben
-					ChrDokument dokument = new ChrDokument(f);
-					Compiler compiler = new Compiler(dokument, f);
+					if(!pfad.getText().equals("Pfad"))
+					{
+						//Compiler erstellen und ihm das ChrDokument übergeben
+						ChrDokument dokument = new ChrDokument(f);
+						Compiler compiler = new Compiler(dokument, f);
+					}
+					else
+					{
+						konsole.setText("Sie müssen erst eine Datei auswählen!");
+					}
 				}
 			}
  		});
@@ -97,7 +104,7 @@ public class Anzeige
  		
  		//Hilfefunktion
  		JButton hilfe = new JButton("Hilfe");			
- 		hilfe.setBounds(frame.getWidth()/2, 40, frame.getWidth()/2, 50);
+ 		hilfe.setBounds(frame.getWidth()/2-9, 40, frame.getWidth()/2-9, 50);
  		hilfe.setFont(font);
  		hilfe.setForeground(Color.white);
  		hilfe.setBackground(Color.gray);
@@ -122,21 +129,18 @@ public class Anzeige
  		/*
  		 * Konsole
  		 */
- 		//JPanel
- 		JPanel panel = new JPanel();
- 		panel.setLayout(null);
-		panel.setBounds(0, 90, frame.getWidth(), frame.getHeight()-90); 
- 		frame.add(panel);
+ 		//JScrollPane für die Konsole
+ 		JScrollPane scroll = new JScrollPane(konsole);
+ 		scroll.setBounds(0, 90, frame.getWidth()-16, frame.getHeight()-136);
+ 	    scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+ 	    scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		frame.add(scroll);
  		//Konsole
-		konsole.setBounds(0, 0, panel.getWidth(), panel.getHeight()); 	
+		konsole.setBounds(0, 0, scroll.getWidth(), scroll.getHeight()); 	
 		konsole.setFont(font);
  		konsole.setDisabledTextColor(Color.white);
  		konsole.setBackground(Color.black);
  		konsole.setEnabled(false);
- 		//JScrollPane für die Konsole
- 		JScrollPane scroll = new JScrollPane(konsole);
- 		scroll.setBounds(0, 0, panel.getWidth(), panel.getHeight());
-		panel.add(scroll);
 
  		
 		
@@ -161,6 +165,12 @@ public class Anzeige
 						{
 							pfad.setText(list.get(0).getCanonicalPath());
 							f = new File(pfad.getText());
+							konsole.setText("Klicken Sie bitte auf Start!");
+						}
+						else
+						{
+							konsole.setText("Es können nur .chr Dateien geöffnet werden!\n");
+							konsole.append("Wählen Sie bitte eine Datei aus!");
 						}
 					} catch (UnsupportedFlavorException e) {
 						e.printStackTrace();
