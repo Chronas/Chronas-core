@@ -91,7 +91,7 @@ public class Anzeige
 					{
 						//Compiler erstellen und ihm das ChrDokument übergeben
 						ChrDokument dokument = new ChrDokument(f);
-						Compiler compiler = new Compiler(dokument, f);
+						try {Compiler compiler = new Compiler(dokument, f);} catch (Exception e) {}
 					}
 					else
 					{
@@ -116,8 +116,10 @@ public class Anzeige
  			{
 				try
 				{
+					System.out.println("hallo");
 					File file = new File("bin/Editor.jar");
-					Runtime.getRuntime().exec("java -jar \"bin/Editor.jar\"");				} 
+					Runtime.getRuntime().exec("java -jar \"bin/Editor.jar\"");			
+				} 
 				catch (IOException e) 
 				{
 					System.out.println("Die Hilfe konnte nicht gestartet werden");
