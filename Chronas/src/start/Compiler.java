@@ -1,6 +1,7 @@
 package start;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class Compiler 
 {
@@ -14,13 +15,15 @@ public class Compiler
 	//Gibt an, ob die Klasse noch nicht angefangen hat und import Anweisungen erlaubt sind
 	boolean startDerKlasse = true;
 	
+	//Fehlermeldungen
+	ArrayList<String> fehler = new ArrayList();
 	
 	
 	
 	/*
 	 * Konstruktor
 	 */
-	public Compiler(ChrDokument dokument, File pfad)
+	public Compiler(ChrDokument dokument, File pfad) throws Exception
 	{
 		Anzeige.konsole.setText("");
 		
@@ -32,9 +35,14 @@ public class Compiler
 		//Compilieren und javadatei estellen
 		compilieren();
 		
-		if(Anzeige.konsole.getText().trim().equals(""))
+		if(fehler.size() == 0)
 		{
 			speichern();
+		}
+		else
+		{
+			fehlerAusgabe();
+			throw new Exception();
 		}
 	}
 	
@@ -45,7 +53,7 @@ public class Compiler
 	/*
 	 * Übersetzen des Codes in Javacode
 	 */
-	public void compilieren()
+	public void compilieren() throws Exception
 	{
 		//Variable, in der die Stärke der Einrückung der Befehle gespeichert ist
 		int limitation = 0;
@@ -134,7 +142,7 @@ public class Compiler
 			}
 			catch(Error e)
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Es existiert ein unbekannter Fehler!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Es existiert ein unbekannter Fehler!\n");
 			}
 		}
 	}
@@ -146,7 +154,7 @@ public class Compiler
 	 * try Block
 	 * try: Stream, Stream
 	 */
-	public void tryBlock(int i) 
+	public void tryBlock(int i) throws Exception 
 	{
 		String[] words = dokument.getText(i).trim().split(":");
 		
@@ -155,7 +163,7 @@ public class Compiler
 		 */
 		if(words[0].trim().split("\\s+").length > 1)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Hinter dem try stehen unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Hinter dem try stehen unbekannte Zeichen!\n");
 			return;
 		}
 		
@@ -202,12 +210,12 @@ public class Compiler
 		 */
 		if(words[0].trim().split("\\s+").length > 1)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Hinter dem catch stehen unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Hinter dem catch stehen unbekannte Zeichen!\n");
 			return;
 		}
 		else if(words.length == 1)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Es wurde keine Exception angegeben!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Es wurde keine Exception angegeben!\n");
 			return;
 		}
 		
@@ -254,7 +262,7 @@ public class Compiler
 		 */
 		if(words.length > 1)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Hinter finally stehen unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Hinter finally stehen unbekannte Zeichen!\n");
 			return;
 		}
 		
@@ -292,12 +300,12 @@ public class Compiler
 			int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
 			if(length > 2) 
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!\n");
 				return;
 			}
 			else if(length == 1) 
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!\n");
 				return;
 			}
 			
@@ -307,7 +315,7 @@ public class Compiler
 				words = words[1].split(">"); 
 				if(words.length != 1  && !dokument.getText(i).contains("extends")) 
 				{
-					Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!\n");
+					fehler.add("Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!\n");
 					return;
 				}
 			}
@@ -359,7 +367,7 @@ public class Compiler
 		}
 		catch(ArrayIndexOutOfBoundsException e)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Es trat ein unbekannter Fehler auf!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Es trat ein unbekannter Fehler auf!\n");
 		}
 	}
 	
@@ -381,19 +389,19 @@ public class Compiler
 			int length = words[0].split("\\s+").length;	//Anzahl der Wörter vor den Modifizierern
 			if(length > 2) 
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Zwischen dem Namen und dem Diamantoperator stehen unbekannte Zeichen!\n");
 				return;
 			}
 			else if(length == 1) 
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Schnittstellenname fehlt!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Der Schnittstellenname fehlt!\n");
 				return;
 			}
 			words = words[1].trim().split(",");
 			length = words.length;
 			if(length > 1) 
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Ein Interface darf nur von einer Klasse oder einem Interface erben!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Ein Interface darf nur von einer Klasse oder einem Interface erben!\n");
 				return;
 			}
 			
@@ -403,7 +411,7 @@ public class Compiler
 				words = words[1].split(">"); 
 				if(words.length != 1  && !dokument.getText(i).contains("extends")) 
 				{
-					Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!\n");
+					fehler.add("Fehler in Zeile " + (i+1) + ": Nach dem Diamantoperator darf kein weiteres Zeichen mehr kommen!\n");
 					return;
 				}
 			}
@@ -441,7 +449,7 @@ public class Compiler
 		}
 		catch(ArrayIndexOutOfBoundsException e)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Es trat ein unbekannter Fehler auf!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Es trat ein unbekannter Fehler auf!\n");
 		}
 	}
 	
@@ -461,12 +469,12 @@ public class Compiler
 		 */
 		if(words[0].split("\\s+").length > 2)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Hinter dem Klassennamen stehen unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Hinter dem Klassennamen stehen unbekannte Zeichen!\n");
 			return;
 		}
 		else if(words[0].split("\\s+").length < 2)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Der Klassenname fehlt!\n");
 			return;
 		}
 		
@@ -516,14 +524,16 @@ public class Compiler
 			//Namen und Rückgabetyp testen
 			if(words.length < 3)
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Rückgabetyp oder der Name fehlen!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Der Rückgabetyp oder der Name fehlen!\n");
 				return;
 			}
 			else if(words.length > 3)
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Es existieren unbekannte Zeichen im Befehl!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Es existieren unbekannte Zeichen im Befehl!\n");
 				return;
 			}		
+			
+			
 			//Throwsteilanweisung testen
 			words = dokument.getText(i).trim().split(":");
 			if(dokument.getText(i).contains("throws"))
@@ -575,7 +585,7 @@ public class Compiler
 		}
 		catch(ArrayIndexOutOfBoundsException e)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Ein unbekannter Fehler ist aufgetaucht!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Ein unbekannter Fehler ist aufgetaucht!\n");
 		}
 	}
 	
@@ -586,7 +596,7 @@ public class Compiler
 	 * Methode ausführen
 	 * Die Argumente sind hinter dem Doppelpunkt und werden durch Kommas getrennt
 	 */
-	public void runMethode(int i, String zeichenkette) //i=Zeile
+	public void runMethode(int i, String zeichenkette) throws Exception //i=Zeile
 	{		
 		/*
 		 * Grammatiküberprüfung und Fehlerausgabe
@@ -596,17 +606,63 @@ public class Compiler
 		if(length != 2) 
 		{
 			System.out.println(length);
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Nach dem Methodennamen stehen unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Nach dem Methodenpfad stehen unbekannte Zeichen!\n");
 			return;
 		}
 		else if(length == 1) 
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Methodenname fehlt!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Der Methodenpfad fehlt!\n");
 			return;
 		}
 		
+		/*
+		 * Die neu geladene Klasse ebenfalls übersetzen, falls es sich dabei um eine .chr Datei handelt.
+		 */
+		//Den Namen der Klasse in die Variable klasse herausfiltern
+		words = zeichenkette.trim().split(":");
+		words = words[0].trim().split("\\s+");		
+		words = words[1].trim().split("\\.");	
+		String klasse = words[0].trim();
+		
+		//Neuen Pfad generieren und testen, ob er existiert
+		String[] pfadteile = pfad.getAbsolutePath().split("\\\\");
+		pfadteile[pfadteile.length-1] = klasse + ".chr";
+		
+		String neupfad = "";
+		for (int j = 0; j < pfadteile.length-1; j++) {
+			neupfad += pfadteile[j] + "\\";
+		}
+		neupfad += pfadteile[pfadteile.length-1];
+		
+		/*
+		 * Wenn der Pfad existiert, wird ein neuer Compiler generiert.
+		 * Tritt ein Fehler auf, wird keine der Dateien gespeichert.
+		 */
+		File file = new File(neupfad);
+		if(file.exists())
+		{
+			try
+			{
+				//rekursiv wird ein nuer Compieler erzeugt. 
+				new Compiler(new ChrDokument(file.getAbsoluteFile()), file);
+			}
+			catch(Exception e)
+			{	
+				//Fehlerausgabe
+				if(fehler.size() > 0)
+				{
+					fehlerAusgabe();
+				}
+				
+				//Neue Exception, damit keine Dateien gespeichert werden
+				throw new Exception();
+			}
+		}
+		
+		
+		
 		//String in einzelne Bestandteile aufteilen und den Doppelpunkt entfernen
-		words = zeichenkette.replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");;
+		words = zeichenkette.replace("run", "").trim().replace(':', ' ').replace(',', ' ').split("\\s+");
 		
 		
 		/*
@@ -657,12 +713,12 @@ public class Compiler
 		String[] words = dokument.getText(i).trim().split("\\s+");
 		if(words.length > 2) 
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Nach dem Pfad stehen unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Nach dem Pfad stehen unbekannte Zeichen!\n");
 			return;
 		}
 		else if(words.length == 1)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Die Pfadangabe fehlt\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Die Pfadangabe fehlt\n");
 			return;
 		}
 		
@@ -683,7 +739,7 @@ public class Compiler
 	 * Variable erstellen:
 	 * var variablentyp name
 	 */
-	public void variable(int i, String zeichenkette) 
+	public void variable(int i, String zeichenkette) throws Exception 
 	{
 		/*
 		 * Grammatiküberprüfung und Fehlerausgabe
@@ -707,12 +763,12 @@ public class Compiler
 		if(words.length > 2) 
 		{
 			System.out.println(words[0]);
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Nach dem Namen kommen unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Nach dem Namen kommen unbekannte Zeichen!\n");
 			return;
 		}
 		else if(words.length < 2)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Name, der Rückgabetyp oder beides fehlt!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Der Name, der Rückgabetyp oder beides fehlt!\n");
 			return;
 		}
 		
@@ -769,7 +825,7 @@ public class Compiler
 	 * Variable einen Wert zuweisen
 	 * assign variablenname = wertoderMethodenaufruf
 	 */
-	public void variableZuweisung(int i) 
+	public void variableZuweisung(int i) throws Exception 
 	{
 		/*
 		 * Grammatiküberprüfung und Fehlerausgabe
@@ -778,7 +834,7 @@ public class Compiler
 		
 		if(words.length < 2) 
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Ein Teil des Befehls fehlt!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Ein Teil des Befehls fehlt!\n");
 			return;
 		}
 		else if(words.length > 2) 
@@ -786,7 +842,7 @@ public class Compiler
 			//Test auf einen Methodenaufruf in der Zuweisung
 			if(!(words[1].contains("run") || words[1].contains("new")))
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Ein Teil des Befehls fehlt!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Ein Teil des Befehls fehlt!\n");
 				return;
 			}
 		}
@@ -832,18 +888,18 @@ public class Compiler
 		{
 			if(words.length != 7 || !words[5].equals("step"))
 			{
-				Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Am Ende des Befehls stehen unbekannte Zeichen!\n");
+				fehler.add("Fehler in Zeile " + (i+1) + ": Am Ende des Befehls stehen unbekannte Zeichen!\n");
 				return;
 			}
 		}
 		else if(words.length < 5)
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Befehl ist unvollständig!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Der Befehl ist unvollständig!\n");
 			return;
 		}
 		else if(words[3].equals("to"))
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Teilbefehl 'to' fehlt!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Der Teilbefehl 'to' fehlt!\n");
 			return;
 		}
 		
@@ -882,7 +938,7 @@ public class Compiler
 		String[] words = dokument.getText(i).trim().split("\\s+");
 		if(words.length == 1) 
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Die Bedingung fehlt!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Die Bedingung fehlt!\n");
 			return;
 		}
 		
@@ -910,7 +966,7 @@ public class Compiler
 		String[] words = dokument.getText(i).trim().split("\\s+");
 		if(words.length == 1) 
 		{
-			Anzeige.konsole.append(javacode[i] += "Fehler in Zeile " + (i+1) + ": Die Bedingung fehlt!\n");
+			fehler.add(javacode[i] += "Fehler in Zeile " + (i+1) + ": Die Bedingung fehlt!\n");
 			return;
 		}
 		
@@ -990,7 +1046,7 @@ public class Compiler
 		
 		if(words.length > 1) 
 		{
-			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Befehl enthält unbekannte Zeichen!\n");
+			fehler.add("Fehler in Zeile " + (i+1) + ": Der Befehl enthält unbekannte Zeichen!\n");
 			return;
 		}
 		
@@ -1009,10 +1065,29 @@ public class Compiler
 			case "@retention" : javacode[i] += "@Retention"; break;
 			case "@target"    : javacode[i] += "@Target"; break;
 			
-			default: Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": " + words[0].trim() + " ist keine gültige Annotation!\n");
+			default: fehler.add("Fehler in Zeile " + (i+1) + ": " + words[0].trim() + " ist keine gültige Annotation!\n");
 
 		}
 	}
+	
+	
+	
+	
+	/* 
+	 * Fehlerausgabe, wovor der Dateipfad ausgegeben wird
+	 */
+	public void fehlerAusgabe()
+	{	
+		//Pfad ausgeben
+		Anzeige.konsole.append(pfad.getAbsolutePath() + ":\n");
+		
+		//Fehler ausgeben
+		for (String fehler: this.fehler) 
+		{
+			Anzeige.konsole.append(fehler + "\n");
+		}
+	}
+	
 	
 	
 	
@@ -1045,7 +1120,7 @@ public class Compiler
 	    
 		Anzeige.konsole.append("Der Übersetzungsvorgang wurde erfolgreich abgeschlossen!\n");
 		Anzeige.konsole.append("Pfad der neuen Datei:  \n");
-		Anzeige.konsole.append("	" + datei.getAbsolutePath());
+		Anzeige.konsole.append("	" + datei.getAbsolutePath() + "\n");
 
 
 	}
