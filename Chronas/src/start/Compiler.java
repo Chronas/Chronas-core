@@ -65,6 +65,9 @@ public class Compiler
 				javacode[i] += "   ";
 			}	
 			
+			//Auf Annotation testen und dann word[0] auf die switch-Anweisung vorbereiten
+			if(dokument.getText(i).contains("@") && dokument.getText(i).trim().charAt(0)== '@')
+				words[0] = "@";
 
 			
 			/*
@@ -103,6 +106,12 @@ public class Compiler
 					case "var": variable(i, dokument.getText(i)); break;
 					case "assign": variableZuweisung(i); break;				//einer Variable einen Wert zuweisen
 					case "new": newObjekt(i, dokument.getText(i)); break;
+					
+					/*
+					 * Annotationen
+					 */
+					case "@": annotation(i); break;
+
 					
 					/*
 					 * Vereinfachte Methoden
@@ -963,6 +972,46 @@ public class Compiler
 		
 		if(!words.equals(""))
 			javacode[i] += " //" + words;
+	}
+	
+	
+	
+	
+	/* 
+	 * Annotationen:
+	 * @annotation 
+	 */
+	public void annotation(int i) //i=Zeile
+	{	
+		/*
+		 * Grammatikprüfung
+		 */
+		String[] words = dokument.getText(i).trim().split("\\s+");
+		
+		if(words.length > 1) 
+		{
+			Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": Der Befehl enthält unbekannte Zeichen!\n");
+			return;
+		}
+		
+		
+		/*
+		 * Annotation rausfiltern und in Javacode übersetzen
+		 */
+		switch(words[0].toLowerCase()) 
+		{
+			case "@deprecated": javacode[i] += "@Deprecated"; break;
+			case "@override"  : javacode[i] += "@Override"; break;
+			case "@suppresswarnings": javacode[i] += "@SuppressWarnings"; break;
+			case "@safevarargs":javacode[i] += "@SafeVarargs"; break;
+			case "@documented": javacode[i] += "@Documented"; break;
+			case "@inherited" : javacode[i] += "@Inherited"; break;
+			case "@retention" : javacode[i] += "@Retention"; break;
+			case "@target"    : javacode[i] += "@Target"; break;
+			
+			default: Anzeige.konsole.append("Fehler in Zeile " + (i+1) + ": " + words[0].trim() + " ist keine gültige Annotation!\n");
+
+		}
 	}
 	
 	
